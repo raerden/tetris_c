@@ -2,20 +2,24 @@
 
 void print_overlay(void)
 {
-    print_rectangle(0, BOARD_N + 1, 0, BOARD_M + 1);
-    print_rectangle(0, BOARD_N + 1, BOARD_M + 2, BOARD_M + HUD_WIDTH + 3);
+    // игровое поле
+    print_rectangle(0, BOARD_H + 1, 0, BOARD_W + 1);
+    // поле статистики
+    print_rectangle(0, BOARD_H + 1, BOARD_W + 2, BOARD_W + INFO_W + 3);
+   
+    print_rectangle(1, 3, BOARD_W + 3, BOARD_W + INFO_W + 2);
+    MVPRINTW(2, BOARD_W + 4, "BEST");
 
-    print_rectangle(1, 3, BOARD_M + 3, BOARD_M + HUD_WIDTH + 2);
-    print_rectangle(4, 6, BOARD_M + 3, BOARD_M + HUD_WIDTH + 2);
-    print_rectangle(7, 9, BOARD_M + 3, BOARD_M + HUD_WIDTH + 2);
-    print_rectangle(10, 15, BOARD_M + 4, BOARD_M + HUD_WIDTH + 1);
+    print_rectangle(4, 6, BOARD_W + 3, BOARD_W + INFO_W + 2);
+    MVPRINTW(5, BOARD_W + 4, "SCORE");
 
-    MVPRINTW(2, BOARD_M + 4, "BEST");
-    MVPRINTW(5, BOARD_M + 4, "SCORE");
-    MVPRINTW(8, BOARD_M + 5, "LEVEL");
-    // MVPRINTW(11, BOARD_M + 7, "NEXT");
+    print_rectangle(7, 9, BOARD_W + 3, BOARD_W + INFO_W + 2);
+    MVPRINTW(8, BOARD_W + 4, "LEVEL");
+    
+    // print_rectangle(11, 16, BOARD_W + 4, BOARD_W + INFO_W + 1);
+    MVPRINTW(10, BOARD_W + 7, "NEXT");
 
-    MVPRINTW(BOARD_N / 2, (BOARD_M - INTRO_MESSAGE_LEN) / 2 + 1, INTRO_MESSAGE);
+    MVPRINTW(BOARD_H / 2, (BOARD_W - INTRO_MESSAGE_LEN) / 2 + 1, INTRO_MESSAGE);
 }
 
 void print_levelerror(void)
@@ -51,16 +55,31 @@ void print_rectangle(int top_y, int bottom_y, int left_x, int right_x)
     MVADDCH(bottom_y, i, ACS_LRCORNER);
 }
 
-void print_stats() {
-    int best_score = 999;
-    int score = 777;
-    int level = 0;
-    MVPRINTW(2, BOARD_M + 10, "%-d", best_score);
-    MVPRINTW(5, BOARD_M + 10, "%-d", score);
-    MVPRINTW(8, BOARD_M + 11, "%-d", level);
+void print_next(GameInfo_t *game) {
+    int color = 0;
+    for (int i = 0; i < 4; i++) 
+        if (game->next[0][i] > 0) {
+            color = game->next[0][i];
+            break;
+        }
+    attron(COLOR_PAIR(color));
+    for (int i = 0; i < 4; i++)
+        for (int j = 0; j < 4; j++) 
+            if (game->next[i][j]) {
+                MVADDCH(12 + i, BOARD_W + 4 + (j * 2 + 1), ' ');
+                MVADDCH(12 + i, BOARD_W + 4 + (j * 2 + 2), ' ');
+        }
+    attroff(COLOR_PAIR(color));
+}
 
+void print_stats(GameInfo_t *game) {
+    MVPRINTW(2, BOARD_W + 10, "%-d", game->high_score);
+    MVPRINTW(5, BOARD_W + 10, "%-d", game->score);
+    MVPRINTW(8, BOARD_W + 10, "%-d", game->level);
+
+    print_next(game);
     
-init_pair(1, COLOR_BLACK, COLOR_RED);
+//init_pair(1, COLOR_BLACK, COLOR_RED);
 /* Цвета ncurses
 #define COLOR_RED	1      палка
 #define COLOR_GREEN	2      N
@@ -71,34 +90,26 @@ init_pair(1, COLOR_BLACK, COLOR_RED);
 #define COLOR_WHITE	7
 
 */
-attron(COLOR_PAIR(1));
-//next палка вертикальная
-    MVADDCH(11, BOARD_M + 8, ' ');
-    MVADDCH(11, BOARD_M + 9, ' ');
-    MVADDCH(12, BOARD_M + 8, ' ');
-    MVADDCH(12, BOARD_M + 9, ' ');
-    MVADDCH(13, BOARD_M + 8, ' ');
-    MVADDCH(13, BOARD_M + 9, ' ');
-    MVADDCH(14, BOARD_M + 8, ' ');
-    MVADDCH(14, BOARD_M + 9, ' ');
+}
 
-//next палка горизонтальная
-    // for (int i = 5; i < 5 + 8; i++)
-    //     MVADDCH(12, BOARD_M + i, ' ');
-
-attroff(COLOR_PAIR(1));
-    // MVPRINTW(5, BOARD_M + 4, "SCORE 7777");
-    // MVPRINTW(8, BOARD_M + 5, "LEVEL 0");
-
+void print_board(GameInfo_t *game) {
+    for (int i = 0; i < BOARD_H; i++)
+        for (int j = 0; j < FIELD_W; j++) 
+            if (game->field[i][j]) {
+                attron(COLOR_PAIR(game->field[i][j]));
+                MVADDCH(i+1, (j * 2 + 1), ' ');
+                MVADDCH(i+1, (j * 2 + 2), ' ');
+                attroff(COLOR_PAIR(game->field[i][j]));
+            }
 }
 
 /*
 void print_stats(game_stats_t *stats)
 {
-    MVPRINTW(2, BOARD_M + 12, "%d", stats->level);
-    MVPRINTW(5, BOARD_M + 12, "%d", stats->score);
-    MVPRINTW(8, BOARD_M + 12, "%d", stats->speed);
-    MVPRINTW(11, BOARD_M + 12, "%d", stats->lives);
+    MVPRINTW(2, BOARD_W + 12, "%d", stats->level);
+    MVPRINTW(5, BOARD_W + 12, "%d", stats->score);
+    MVPRINTW(8, BOARD_W + 12, "%d", stats->speed);
+    MVPRINTW(11, BOARD_W + 12, "%d", stats->lives);
 }
 
 void print_board(board_t *game, player_pos *frog)
@@ -107,31 +118,10 @@ void print_board(board_t *game, player_pos *frog)
     PRINT_FROG(frog->x, frog->y);
 }
 
-void print_cars(board_t *game)
-{
-    for(int i = MAP_PADDING + 1; i < BOARD_N - MAP_PADDING + 1; i++)
-    {
-        if (i % 2 == (MAP_PADDING + 1) % 2)
-        {
-            for (int j = 1; j < BOARD_M + 1; j++)
-                MVADDCH(i, j, ACS_BLOCK);
-        }
-        else
-        {
-            for (int j = 1; j < BOARD_M + 1; j++)
-            {
-                if (game->ways[i - MAP_PADDING - 1][j - 1] == '0')
-                    MVADDCH(i, j, ' ');
-                else
-                    MVADDCH(i, j, ']');
-            }
-        }
-    }
-}
 
 void print_finished(board_t *game)
 {
-    for (int i = 0; i < BOARD_M; i++)
+    for (int i = 0; i < BOARD_W; i++)
     {
         if (game->finish[i] == '0')
             MVADDCH(1, i + 1, ACS_BLOCK);

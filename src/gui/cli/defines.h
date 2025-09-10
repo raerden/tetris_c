@@ -7,6 +7,7 @@
                              curs_set(0);\
                              keypad(stdscr, TRUE);\
                              start_color();\
+                             init_pair(1, COLOR_BLACK, COLOR_RED);\
                              timeout(time);\
                         }
 
@@ -19,26 +20,24 @@
 
 #define YOU_WON "tests/game_progress/you_won.txt"
 #define YOU_LOSE "tests/game_progress/you_lose.txt"
-#define INTRO_MESSAGE "Press ENTER to start!"
+#define INTRO_MESSAGE "Press ENTER to start"
 #define INTRO_MESSAGE_LEN     21
-#define LEVEL_CNT 5
-#define LEVELNAME_MAX 25
 
 #define MAX_WIN_COUNT    10
 
-#define ROWS_MAP 21
-#define COLS_MAP 90
+// #define ROWS_MAP 14
+// #define COLS_MAP 90
 
 #define BOARDS_BEGIN 2
 
-#define FROGSTART_X      (BOARD_M / 2)
-#define FROGSTART_Y      (BOARD_N)
-#define INITIAL_TIMEOUT  150
+#define INITIAL_TIMEOUT  600
 
-#define BOARD_N     (ROWS_MAP + MAP_PADDING * 2)
-#define BOARD_M     30
-#define HUD_WIDTH   12
-#define MAP_PADDING 3
+#define FIELD_W     10
+#define BOARD_H     20
+#define BOARD_W     20
+
+#define INFO_W   12
+// #define MAP_PADDING 3
 
 #define BANNER_N    10
 #define BANNER_M    100

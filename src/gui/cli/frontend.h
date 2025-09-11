@@ -8,18 +8,14 @@
 #include "../../brick_game.h"
 // #include "objects.h"
 
+void win_init(int time);
+void win_close();
 void print_overlay(void);
-void print_levelerror(void);
 void print_rectangle(int top_y, int bottom_y, int left_x, int right_x);
+void clear_field();
+void print_field(GameInfo_t *game);
 void print_stats(GameInfo_t *game);
-void print_board(GameInfo_t *game);
-
-
-// void print_stats(game_stats_t *stats);
-// void print_board(board_t *game, player_pos *frog);
-// void print_cars(board_t *game);
-// void print_finished(board_t *game);
-// void print_banner(game_stats_t *stats);
-// int read_banner(game_stats_t *stats, banner_t *banner);
+void print_next(GameInfo_t *game);
+void print_pause(GameInfo_t *game);
 
 #endif

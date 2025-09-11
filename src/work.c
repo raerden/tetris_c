@@ -1,5 +1,6 @@
 #include <ncurses.h>
-#include <locale.h>
+#include <time.h>
+//#include <locale.h>
 #include "./gui/cli/defines.h"
 #include "./gui/cli/frontend.h"
 
@@ -28,7 +29,9 @@ void freegame(GameInfo_t *game) {
 }
 
 int main() {
-    WIN_INIT(-1);
+
+    win_init(-1);
+
     GameInfo_t game = {0};
     print_overlay();
 
@@ -40,11 +43,19 @@ int main() {
     for(int i=0; i < 20; i++)
         game.field[i] = (int *)calloc(10, sizeof(int));
 
-    for (int i=0; i < 10; i++)
-        game.field[i][i] = 1;
+    // for (int i=0; i < 10; i++)
+    //     game.field[i][i] = 1;
     
-    for (int i = 9; i >= 0; i--)
-          game.field[i+10][i] = 1;
+    // for (int i = 9; i >= 0; i--)
+    //       game.field[i+10][i] = 1;
+
+ srand(time(NULL)); // сброс рандомайзера текущим временем
+
+    // рандомная мозайка из всех цветов 1-7
+    for (int i=0;i<20;i++)
+        for (int j=0;j<10;j++)
+            game.field[i][j] = 1 + rand() % 7;// 1 - 7
+
     
 
     game.next = (int **)calloc(4, sizeof(int*));
@@ -56,75 +67,35 @@ int main() {
     game.next[0][2] = 1;
     game.next[0][3] = 1;
 
-    print_stats(&game);
+    // print_stats(&game);
 
-    print_board(&game);
+    // print_board(&game);
+    // getch();
+
+    game.pause = 3;
+    print_pause(&game);
 
     freegame(&game);
+
     
-/*
-#define COLOR_RED	1      палка
-#define COLOR_GREEN	2      N
-#define COLOR_YELLOW	3  Г
-#define COLOR_BLUE	4      Т
-#define COLOR_MAGENTA	5  box
-*/
-//     init_pair(1, COLOR_BLACK, COLOR_RED);
-//     init_pair(2, COLOR_BLACK, COLOR_GREEN);
-//     init_pair(3, COLOR_BLACK, COLOR_YELLOW);
-//     init_pair(4, COLOR_BLACK, COLOR_BLUE);
-//     init_pair(5, COLOR_BLACK, COLOR_MAGENTA);
-
-//     attron(COLOR_PAIR(1));
-
-//     MVADDCH(1, 1, ' ');
-//     MVADDCH(1, 2, ' ');
-//     MVADDCH(1, 3, ' ');
-//     MVADDCH(1, 4, ' ');
-//     MVADDCH(1, 5, ' ');
-//     MVADDCH(1, 6, ' ');
-//     MVADDCH(1, 7, ' ');
-//     MVADDCH(1, 8, ' ');
-
-//     MVADDCH(2, 9, ' ');
-//     MVADDCH(2, 10, ' ');
-//     MVADDCH(2, 11, ' ');
-//     MVADDCH(2, 12, ' ');
-//     MVADDCH(2, 13, ' ');
-//     MVADDCH(2, 14, ' ');
-//     MVADDCH(2, 15, ' ');
-//     MVADDCH(2, 16, ' ');
-
-
-//     MVADDCH(20, 1, ' ');
-//     MVADDCH(20, 1, ' ');
-
-
-//     MVADDCH(1, 19, ' ');
-//     MVADDCH(1, 20, ' ');
-
-//     MVADDCH(10, 20, ' ');
-//     MVADDCH(20, 20, ' ');
-
-attroff(COLOR_PAIR(1));
-attroff(COLOR_PAIR(2));
-attroff(COLOR_PAIR(3));
-attroff(COLOR_PAIR(4));
-attroff(COLOR_PAIR(5));
-
     // printw("Speed = \n");
     getch();
-    // reset_shell_mode();
-    //curs_set(1);
 
-    // Правильное завершение
-    reset_shell_mode();
-    echo();
-    nocbreak();
-    keypad(stdscr, FALSE);
+    // clear_board();
 
-    endwin();
+    // getch();
+
+    win_close();
     return 0;
+
+    // напечатать заданные цветовые пары
+    // for (int i = 1; i < 8; i++){
+    //     MVPRINTW(i, 0 , "%d", i);
+    //     attron(COLOR_PAIR(i));
+    //     MVADDCH(i, 4 , ' ');
+    //     MVADDCH(i, 5 , ' ');
+    //     attroff(COLOR_PAIR(i));
+    // }
 
   WINDOW *win = newwin(10, 10, 1, 1); // Создание нового окна
     box(win, 0, 0); // Рисование рамки вокруг окна

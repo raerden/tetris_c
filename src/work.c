@@ -20,11 +20,13 @@ void freegame(GameInfo_t *game) {
         for (int i = 0; i < 20; i++)
             free(game->field[i]);
         free(game->field);
+        game->field = NULL;
     }
     if (game->next != NULL) {
         for (int i = 0; i < 4; i++)
             free(game->next[i]);
         free(game->next);
+        game->next = NULL;
     }
 }
 
@@ -43,6 +45,10 @@ int main() {
     for(int i=0; i < 20; i++)
         game.field[i] = (int *)calloc(10, sizeof(int));
 
+        game.next = (int **)calloc(4, sizeof(int*));
+    for(int i=0; i < 4; i++)
+        game.next[i] = (int *)calloc(4, sizeof(int));
+
     // for (int i=0; i < 10; i++)
     //     game.field[i][i] = 1;
     
@@ -55,34 +61,24 @@ int main() {
     for (int i=0;i<20;i++)
         for (int j=0;j<10;j++)
             game.field[i][j] = 1 + rand() % 7;// 1 - 7
-
-    
-
-    game.next = (int **)calloc(4, sizeof(int*));
-    for(int i=0; i < 4; i++)
-        game.next[i] = (int *)calloc(4, sizeof(int));
-
+   
     game.next[0][0] = 1;
     game.next[0][1] = 1;
     game.next[0][2] = 1;
     game.next[0][3] = 1;
 
-    // print_stats(&game);
+    print_stats(&game);
+    print_field(&game);
+    getch();
 
-    // print_board(&game);
-    // getch();
-
-    game.pause = 3;
+    game.pause = 0;
     print_pause(&game);
 
     freegame(&game);
 
     
-    // printw("Speed = \n");
     getch();
-
-    // clear_board();
-
+    // print_field();
     // getch();
 
     win_close();

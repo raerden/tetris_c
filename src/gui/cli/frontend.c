@@ -26,7 +26,7 @@ void win_close() {
     endwin();
 }
 
-void print_overlay(void) {
+void print_board(void) {
     // игровое поле
     print_rectangle(0, BOARD_H + 1, 0, BOARD_W + 1);
     // поле статистики
@@ -43,7 +43,7 @@ void print_overlay(void) {
 
     MVPRINTW(10, BOARD_W + 7, "NEXT");
 
-    MVPRINTW(BOARD_H / 2, (BOARD_W - INTRO_MESSAGE_LEN) / 2 + 1, INTRO_MESSAGE);
+    MVPRINTW(BOARD_H / 2, (BOARD_W - PRESS_ENTER_MESSAGE_LEN) / 2 + 1, PRESS_ENTER_MESSAGE);
 }
 
 void print_rectangle(int top_y, int bottom_y, int left_x, int right_x)
@@ -147,7 +147,9 @@ void print_pause(GameInfo_t *game) {
         MVPRINTW(BOARD_H / 2 - 2, (BOARD_W - SMILE_WIDTH) / 2 + 1, SMILE_SAD);
     }
     if (game->pause == 2 || game->pause == 3) {
-        MVPRINTW(BOARD_H / 2, (BOARD_W - INTRO_MESSAGE_LEN) / 2 + 1, INTRO_MESSAGE);
+        MVPRINTW(BOARD_H / 2, (BOARD_W - PRESS_ENTER_MESSAGE_LEN) / 2 + 1, PRESS_ENTER_MESSAGE);
+    }
+    if (game->pause == 1 || game->pause == 2 || game->pause == 3) {
         MVPRINTW(BOARD_H / 2 + 1, (BOARD_W - PRESS_Q_MESSAGE_LEN) / 2 + 1 , PRESS_Q_MESSAGE);
     }
 }

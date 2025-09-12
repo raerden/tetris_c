@@ -1,8 +1,11 @@
-#include <ncurses.h>
 #include <time.h>
+#include <stdlib.h>
+#include <stdio.h>
 //#include <locale.h>
 #include "./gui/cli/defines.h"
 #include "./gui/cli/frontend.h"
+// #include "./brick_game/tetris/defines.h"
+#include "./brick_game/tetris/backend.h"
 
 // #define KEY_LEFT
 
@@ -15,47 +18,22 @@ void pause_game(int fall_delay) {
     clear();//очистка экрана
 }
 
-void freegame(GameInfo_t *game) {
-    if (game->field != NULL) {
-        for (int i = 0; i < 20; i++)
-            free(game->field[i]);
-        free(game->field);
-        game->field = NULL;
-    }
-    if (game->next != NULL) {
-        for (int i = 0; i < 4; i++)
-            free(game->next[i]);
-        free(game->next);
-        game->next = NULL;
-    }
-}
-
 int main() {
-
     win_init(-1);
 
     GameInfo_t game = {0};
-    print_overlay();
+    print_board();
 
     game.high_score = 9999;
     game.score = 768;
     game.level = 2;
+    game.field = create_matrix(20, 10);
+    game.next = create_matrix(4, 4);
 
-    game.field = (int **)calloc(20, sizeof(int*));
-    for(int i=0; i < 20; i++)
-        game.field[i] = (int *)calloc(10, sizeof(int));
 
-        game.next = (int **)calloc(4, sizeof(int*));
-    for(int i=0; i < 4; i++)
-        game.next[i] = (int *)calloc(4, sizeof(int));
+  srand(time(NULL)); // сброс рандомайзера текущим временем
+    // srand(get_time()); // сброс рандомайзера текущим временем
 
-    // for (int i=0; i < 10; i++)
-    //     game.field[i][i] = 1;
-    
-    // for (int i = 9; i >= 0; i--)
-    //       game.field[i+10][i] = 1;
-
- srand(time(NULL)); // сброс рандомайзера текущим временем
 
     // рандомная мозайка из всех цветов 1-7
     for (int i=0;i<20;i++)
@@ -71,10 +49,11 @@ int main() {
     print_field(&game);
     getch();
 
-    game.pause = 0;
+    game.pause = 2;
     print_pause(&game);
 
-    freegame(&game);
+    free_matrix(game.field, 20);
+    free_matrix(game.next, 4);
 
     
     getch();
@@ -127,6 +106,10 @@ int main() {
     switch (ch) {
         case 'q':
             cont = 0;
+            break;
+        case 10:
+            printw("Key enter");
+            break;
         case KEY_LEFT:
             //move_piece_left();
             // if (can_move_left()) move_piece_left();

@@ -15,14 +15,14 @@
 
 #define INFO_W   12
 
-#define SUCCESS   0
-#define ERROR     1
+// #define SUCCESS   0
+// #define ERROR     1
 
-#define INITIAL_TIMEOUT  600
-#define NO_INPUT -1
+// #define INITIAL_TIMEOUT  600
+// #define NO_INPUT -1
 
-#define ESCAPE 27
-#define ENTER_KEY 10
+// #define ESCAPE 27
+// #define ENTER_KEY 10
 
 #define COLR_RED 1
 #define COLR_ORANGE 208
@@ -32,14 +32,15 @@
 #define COLR_BLUE   20
 #define COLR_PURPLE 90
 
-#define INTRO_MESSAGE "Press ENTER to start"
-#define INTRO_MESSAGE_LEN 20
-#define PAUSE_MESSAGE "Game on pause"
-#define PAUSE_MESSAGE_LEN 13
+#define PRESS_ENTER_MESSAGE "Press ENTER to start"
+#define PRESS_ENTER_MESSAGE_LEN 20
 #define PRESS_P_MESSAGE "Press P to continue"
 #define PRESS_P_MESSAGE_LEN 19
 #define PRESS_Q_MESSAGE "Press Q to quit"
 #define PRESS_Q_MESSAGE_LEN 15
+
+#define PAUSE_MESSAGE "Game on pause"
+#define PAUSE_MESSAGE_LEN 13
 #define WIN_MESSAGE "!! YOU WON !!"
 #define WIN_MESSAGE_LEN 13
 #define LOSE_MESSAGE "GAME OVER"
@@ -49,7 +50,5 @@
 #define SMILE_WIN "(^_^)"
 #define SMILE_SAD "(~_~)"
 #define SMILE_WIDTH 5
-
-
 
 #endif

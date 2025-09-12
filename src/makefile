@@ -17,10 +17,15 @@ clean:
 
 runbuild:
 	@$(RM) a.out
-	$(CC) -Werror gui/cli/frontend.c work.c -lncurses
+	$(CC) -Werror -std=c11 gui/cli/frontend.c brick_game/tetris/backend.c work.c -lncurses
 
 run: runbuild
 	./a.out
 
 mem: runbuild
-	valgrind --leak-check=full ./a.out
+	valgrind --leak-check=full --suppressions=ncurses.supp ./a.out
+
+fst:
+	@$(RM) a.out
+	$(CC) -Werror fast.c
+	./a.out

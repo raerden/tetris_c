@@ -1,5 +1,3 @@
-#include <time.h>
-#include <stdlib.h>
 #include <stdio.h>
 //#include <locale.h>
 #include "./gui/cli/defines.h"
@@ -9,29 +7,119 @@
 
 // #define KEY_LEFT
 
-void pause_game(int fall_delay) {
-    timeout(-1); // Блокирующий ввод
-    mvprintw(10, 10, "PAUSED - Press any key to continue");
-    refresh();
-    getch();//ожидание любой клавиши. можно сделать только p
-    timeout(fall_delay); // Возвращаем таймаут
-    clear();//очистка экрана
+typedef enum {
+    Start1,
+    Spawn,
+    Moving,
+    Attaching,
+    Pause1,
+    Game_over
+} fsm_state;
+
+void userInput(UserAction_t action, bool hold) {
+    // switch (getch())
+    // {
+    // case 'q':
+        
+    //     break;
+    
+    // default:
+    //     break;
+    // };
+}
+
+GameInfo_t updateCurrentState();
+GameInfo_t updateCurrentState() {
+    static GameInfo_t game = {0};
+    if (game.field == NULL) {
+        game.field = create_matrix(20, 10);
+        game.next = create_matrix(4, 4);
+    }
+    game.score += 1;
+    return game;
 }
 
 int main() {
-    win_init(-1);
+/*
+//Я правильно понимаю логику main()?
 
-    GameInfo_t game = {0};
+// проинциализировали ncurses;
+// Отрисовали поле.
+
+//Cоздаем переменные:
+UserAction_t action;
+bool hold = 0;
+bool is_playing = true;
+GameInfo_t game = {0};
+// иницилазируем структуру game (создать матрицы, уровень, счет и тд)
+
+//Описываю структуру fsm с полями
+
+//Крутимся в бесконечном цикле 
+while(is_playing) {
+    следим за клавиатурой,
+    если нажали влево, {
+        присваиваем action = Left;
+        вызываем userInput(action, hold);
+        userInput меняет статус конечно автомата на move_left
+    }
+    game = updateCurrentState();
+    print_board(&game);
+}
+*/
+    win_init(-1);
     print_board();
+
+    UserAction_t action = 0;
+    GameInfo_t game = {0};
+    fsm_state fsm;
+    
+    game = updateCurrentState();
+
+    bool is_playing = true;
+    bool hold = false;
+    fsm = Start;
+    int key = 0;
+    timeout(100);
+
+    while(is_playing) {
+        userInput(action, hold);
+        switch (key)
+        {
+        case 'q':
+            is_playing = false;
+            break;
+        
+        default:
+            break;
+        }
+        
+
+        game = updateCurrentState();
+        print_stats(&game);
+        print_field(&game);
+        key = getch();
+    }
+
+    // game.field = create_matrix(20, 10);
+    // game.next = create_matrix(4, 4);
+    // print_stats(&game);
+    // print_field(&game);
+
+
+    // getch();
+    free_matrix(game.field, 20);
+    free_matrix(game.next, 4);
+    win_close();
+    return 0;
 
     game.high_score = 9999;
     game.score = 768;
     game.level = 2;
-    game.field = create_matrix(20, 10);
-    game.next = create_matrix(4, 4);
 
 
-  srand(time(NULL)); // сброс рандомайзера текущим временем
+
+    srand(time(NULL)); // сброс рандомайзера текущим временем
     // srand(get_time()); // сброс рандомайзера текущим временем
 
 
@@ -141,7 +229,7 @@ int main() {
             break;
 
         case 'p':
-            pause_game(fall_delay);
+            // pause_game(fall_delay);
             break;
         case ERR: // Таймаут - автоматическое падение
             //move_piece_down();

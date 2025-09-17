@@ -3,6 +3,15 @@ CFLAGS = -std=c11 -Wall -Werror -Wpedantic
 OBJS_FSMSWITCHCASE := out/frogger.o out/fsm.o out/backend.o out/frontend.o
 OBJS_FSMTABLE := out/frogger.o out/fsm_matrix.o out/backend.o out/frontend.o
 
+UNAME := $(shell uname -s)
+ifeq ($(UNAME), Linux)
+    CHECK_FLAGS += -lsubunit
+	OPEN_CMD:=xdg-open
+else ifeq ($(shell uname), Darwin)
+	OPEN_CMD:=open
+	CC := clang
+endif
+
 frogger: $(OBJS_FSMSWITCHCASE)
 	$(CC) $(CFLAGS) $^ -o $@ -lncurses
 
@@ -27,5 +36,5 @@ mem: runbuild
 
 fst:
 	@$(RM) a.out
-	$(CC) -Werror fast.c
+	$(CC) -Werror -std=c11 fast.c -lncurses
 	./a.out

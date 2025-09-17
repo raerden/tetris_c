@@ -26,3 +26,4 @@ void free_matrix(int **matrix, int size) {
     }
     matrix = NULL;
 }
+

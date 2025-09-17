@@ -26,7 +26,14 @@ seconds = round(1250 * (0,8 ^ level));
 168
 134
 
-
+void pause_game(int fall_delay) {
+    timeout(-1); // Блокирующий ввод
+    mvprintw(10, 10, "PAUSED - Press any key to continue");
+    refresh();
+    getch();//ожидание любой клавиши. можно сделать только p
+    timeout(fall_delay); // Возвращаем таймаут
+    clear();//очистка экрана
+}
 
 
     initscr();

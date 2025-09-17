@@ -2,11 +2,8 @@
 #define BRICKGAME_FRONTEND_H
 
 #include <ncurses.h>
-// #include <stdlib.h>
-// #include <string.h>
 #include "defines.h"
 #include "../../brick_game.h"
-// #include "objects.h"
 
 void win_init(int time);
 void win_close();

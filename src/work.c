@@ -8,38 +8,94 @@
 // #define KEY_LEFT
 
 typedef enum {
-    Start1,
+    Initial,
     Spawn,
     Moving,
+    Shifting,
     Attaching,
-    Pause1,
-    Game_over
+    PauseGame,
+    GameOver
 } fsm_state;
 
-void userInput(UserAction_t action, bool hold) {
-    // switch (getch())
-    // {
-    // case 'q':
-        
-    //     break;
-    
-    // default:
-    //     break;
-    // };
+typedef struct {
+  int **field;
+  int **next;
+  int score;
+  int high_score;
+  int level;
+  int speed;
+  int pause;
+  int **figure;
+  int pos_x;
+  int pos_y;
+  long long time;
+} TetrisGameInfo_t;
+
+TetrisGameInfo_t *GetTetrisGameInfo() {
+    static TetrisGameInfo_t TetrisGameInfo = {0};
+    if (TetrisGameInfo.field == NULL) {
+        TetrisGameInfo.field = create_matrix(20, 10);
+        TetrisGameInfo.next = create_matrix(4, 4);
+        TetrisGameInfo.figure = create_matrix(4, 4);
+    }
+    return &TetrisGameInfo;
 }
 
-GameInfo_t updateCurrentState();
+
+void userInput(UserAction_t action, bool hold) {
+    TetrisGameInfo_t *TetrisGameInfo = GetTetrisGameInfo();
+    switch (action)
+    {
+    case Pause:
+        if (TetrisGameInfo->pause == 1) {
+            TetrisGameInfo->pause = 0;
+            timeout(10);
+        }
+        else if (TetrisGameInfo->pause == 0) {
+            TetrisGameInfo->pause = 1;
+            timeout(-1);
+        }
+        break;
+    case Terminate:
+        //TetrisGameInfo->is_playing = false;
+        break;
+    default:
+        break;
+    };
+}
+
 GameInfo_t updateCurrentState() {
     static GameInfo_t game = {0};
     if (game.field == NULL) {
         game.field = create_matrix(20, 10);
         game.next = create_matrix(4, 4);
     }
-    game.score += 1;
+    TetrisGameInfo_t *TetrisGameInfo = GetTetrisGameInfo();
+    game.pause = TetrisGameInfo->pause;
+    if (game.pause == 0)
+        game.score += 1;
     return game;
 }
 
+bool process_key(UserAction_t *action) {
+    bool res = true;
+    switch (getch())
+    {
+    case 'q':
+        *action = Terminate;
+        break;
+    case 'p':
+        *action = Pause;
+        break;
+    default:
+        res = false;
+        break;
+    }
+    return res;
+}
+
 int main() {
+
 /*
 //Я правильно понимаю логику main()?
 
@@ -76,40 +132,33 @@ while(is_playing) {
     
     game = updateCurrentState();
 
-    bool is_playing = true;
     bool hold = false;
     fsm = Start;
-    int key = 0;
-    timeout(100);
+    timeout(10);
 
-    while(is_playing) {
-        userInput(action, hold);
-        switch (key)
-        {
-        case 'q':
-            is_playing = false;
-            break;
-        
-        default:
-            break;
-        }
+    while(action != Terminate) {
+        if (process_key(&action))
+            userInput(action, hold);
         
 
         game = updateCurrentState();
         print_stats(&game);
-        print_field(&game);
-        key = getch();
+        if (game.pause == 1) {
+            print_pause(&game);
+        }
+        else
+            print_field(&game);
     }
 
-    // game.field = create_matrix(20, 10);
-    // game.next = create_matrix(4, 4);
-    // print_stats(&game);
-    // print_field(&game);
 
-
-    // getch();
     free_matrix(game.field, 20);
     free_matrix(game.next, 4);
+    TetrisGameInfo_t *TetrisGameInfo = GetTetrisGameInfo();
+    free_matrix(TetrisGameInfo->field, 20);
+    free_matrix(TetrisGameInfo->next, 4);
+    free_matrix(TetrisGameInfo->figure, 4);
+
+
     win_close();
     return 0;
 

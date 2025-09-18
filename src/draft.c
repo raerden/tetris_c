@@ -1,4 +1,34 @@
 /*
+// получение из static функции указателя на структуру
+    // получить указатель
+    TetrisGameInfo_t *TetrisGameInfo = GetTetrisGameInfo();
+
+    //печатаем значение из структуры
+    printf("%d\n", TetrisGameInfo->level);
+
+    //изменяем значения структуры через указатель
+    TetrisGameInfo->level = 10;
+    for (int i=0;i<4;i++)
+        TetrisGameInfo->figure[i][i] = i;
+
+    // проверка что значение внесены
+    printf("%d\n", TetrisGameInfo->level);
+
+// создаю новый указатель и получаю адрес структуры
+    TetrisGameInfo_t *test = GetTetrisGameInfo();
+
+    //печатаю через новый указатель данные из static структуры
+    for (int i=0;i<4;i++)
+        printf("%d, ", test->figure[i][i] = i);
+    printf("\n");
+
+    //очищаю через новый указатель массивы
+    free_matrix(test->field, 20);
+    free_matrix(test->next, 4);
+    free_matrix(test->figure, 4);
+    return 0;
+
+
 официальная форму расчета скорости для уровней
 seconds = round(1000 * (0.8 - ((level-1)*0.007) )^(level-1));
 выдает такие миллисекунды на уровни от 1-10

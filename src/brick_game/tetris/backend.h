@@ -15,11 +15,13 @@ typedef enum {
     FSM_Moving,   //ожидание ввода, перемещение фигуры игроком
     FSM_Shifting, //Сдвиг фигуры вниз по таймеру
     FSM_Attaching,
-    FSM_PauseGame,
+    FSM_GamePause,
+    FSM_GameWin,
     FSM_GameOver
 } FSM_State_t;
 
 typedef struct {
+  FSM_State_t status;
   int **field;
   int **next;
   int next_size;

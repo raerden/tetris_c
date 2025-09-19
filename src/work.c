@@ -6,11 +6,6 @@
 #include "./brick_game/tetris/backend.h"
 
 
-FSM_State_t *getCurrentFSMState() {
-    static FSM_State_t State = FSM_Start;
-    return &State;
-}
-
 TetrisGameInfo_t *getTetrisGameInfo() {
     static TetrisGameInfo_t TetrisGameInfo = {0};
     if (TetrisGameInfo.field == NULL) {
@@ -22,19 +17,25 @@ TetrisGameInfo_t *getTetrisGameInfo() {
 }
 
 
+
+void GamePause() {
+    TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
+    if (TetrisGameInfo->pause == 1) {
+        TetrisGameInfo->pause = 0;
+        timeout(10);
+    }
+    else if (TetrisGameInfo->pause == 0) {
+        TetrisGameInfo->pause = 1;
+        timeout(-1);
+    }
+}
+
 void userInput(UserAction_t action, bool hold) {
     TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
     switch (action)
     {
     case Pause:
-        if (TetrisGameInfo->pause == 1) {
-            TetrisGameInfo->pause = 0;
-            timeout(10);
-        }
-        else if (TetrisGameInfo->pause == 0) {
-            TetrisGameInfo->pause = 1;
-            timeout(-1);
-        }
+
         break;
     case Terminate:
         //TetrisGameInfo->is_playing = false;
@@ -50,7 +51,7 @@ void copyTetrominoToField(GameInfo_t *GameInfo) {
         for (int x = 0; x < TetrisGameInfo->figure_size; x++) {
             int field_x = x + TetrisGameInfo->pos_x;
             int field_y = y + TetrisGameInfo->pos_y;
-// mvprintw(25+y, 1, "pos_x=%d, pos_y=%d", TetrisGameInfo->pos_x, TetrisGameInfo->pos_y);
+//mvprintw(25+y, 1, "x(col)=%d, y(row)=%d, field_x(col)=%d, field_y(row)=%d", x, y, field_x, field_y);
             if (TetrisGameInfo->figure[y][x] > 0 && field_x < FIELD_W &&  field_y < FIELD_H)
                 GameInfo->field[field_y][field_x] = TetrisGameInfo->figure[y][x];
         }
@@ -86,21 +87,22 @@ void spawnFigure() {
     GenerateNextFigure(TetrisGameInfo);
 }
 
+
 int main() {
     win_init(-1);
+    srand(get_time()); //сброс rand() текущим временем
 
     print_board();
 
     UserAction_t action = 0;
+    bool hold = false;
     GameInfo_t game = {0};
-    FSM_State_t *state;
-    srand(get_time()); //сброс rand() текущим временем
+    TetrisGameInfo_t *state;
+
 
     GenerateNextFigure(getTetrisGameInfo());
     spawnFigure();
-    // game = updateCurrentState();
 
-    bool hold = false;
     
     timeout(10);
     
@@ -108,20 +110,39 @@ int main() {
     // mvprintw(25, 1, "suka");
 
     while(action != Terminate) {
-        state = getCurrentFSMState();// получаем текущее состояние конечного автомата
-
-        if (process_key(&action, &hold))//читаем клавиатуру
-            userInput(action, hold);//если было нажатие, меняем FSM или вызываем соотв. функции
-
-        game = updateCurrentState();
-        print_stats(&game);
-        if (game.pause == 1) {
-            print_pause(&game);
+        state = getTetrisGameInfo(); // получаем текущее состояние конечного автомата
+        if (state->status == FSM_Start) {
+            //updateUserAction(); - чтение клаиватуры.
+        } else if (state->status == FSM_Spawn) {
+            spawnFigure();
+        } else if (state->status == FSM_Moving) {
+            //updateUserAction();
+        } else if (state->status == FSM_Shifting) {
+            //ShiftFigure();
+        } else if (state->status == FSM_Attaching) {
+            //AttachFigure();
+        } else if (state->status == FSM_GamePause) {
+            GamePause();
+        } else if (state->status == FSM_GameWin) {
+            // GameWin();
+        } else if (state->status == FSM_GameOver) {
+            // GameOver();
         }
-        else {
-            getTetrisGameInfo()->score += 1;
-            print_field(&game);
-        }
+
+        // render(updateCurrentState());
+
+        // if (process_key(&action, &hold))//читаем клавиатуру
+        //     userInput(action, hold);//если было нажатие, меняем FSM или вызываем соотв. функции
+
+        // game = updateCurrentState();
+        // print_stats(&game);
+        // if (game.pause == 1) {
+        //     print_pause(&game);
+        // }
+        // else {
+        //     getTetrisGameInfo()->score += 1;
+        //     print_field(&game);
+        // }
     }
 
 

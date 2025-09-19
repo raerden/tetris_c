@@ -8,13 +8,13 @@
 // #define KEY_LEFT
 
 typedef enum {
-    Initial,
-    Spawn,
-    Moving,
-    Shifting,
-    Attaching,
-    PauseGame,
-    GameOver
+    Fsm_Start,
+    Fsm_Spawn,
+    Fsm_Moving,   //перемещение фигуры игроком
+    Fsm_Shifting, //Сдвиг фигуры вниз по таймеру
+    Fsm_Attaching,
+    Fsm_PauseGame,
+    Fsm_GameOver
 } fsm_state;
 
 typedef struct {
@@ -77,23 +77,6 @@ GameInfo_t updateCurrentState() {
     return game;
 }
 
-bool process_key(UserAction_t *action) {
-    bool res = true;
-    switch (getch())
-    {
-    case 'q':
-        *action = Terminate;
-        break;
-    case 'p':
-        *action = Pause;
-        break;
-    default:
-        res = false;
-        break;
-    }
-    return res;
-}
-
 int main() {
 
 /*
@@ -137,7 +120,7 @@ while(is_playing) {
     timeout(10);
 
     while(action != Terminate) {
-        if (process_key(&action))
+        if (process_key(&action, &hold))
             userInput(action, hold);
         
 

@@ -14,5 +14,6 @@ void print_field(GameInfo_t *game);
 void print_stats(GameInfo_t *game);
 void print_next(GameInfo_t *game);
 void print_pause(GameInfo_t *game);
+bool process_key(UserAction_t *action, bool *hold);
 
 #endif

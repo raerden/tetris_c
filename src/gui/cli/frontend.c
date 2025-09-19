@@ -153,3 +153,51 @@ void print_pause(GameInfo_t *game) {
         MVPRINTW(BOARD_H / 2 + 1, (BOARD_W - PRESS_Q_MESSAGE_LEN) / 2 + 1 , PRESS_Q_MESSAGE);
     }
 }
+
+
+bool process_key(UserAction_t *action, bool *hold) {
+    static int prev_key = 0;
+    int key = getch();
+    bool res = true;
+
+    switch (key)
+    {
+    case 's':
+        *action = Start;
+        break;
+    case 'p':
+        *action = Pause;
+        break;
+    case 'q':
+        *action = Terminate;
+        break;
+    case KEY_LEFT:
+        *action = Left;
+        break;
+    case KEY_RIGHT:
+        *action = Right;
+        break;
+    case KEY_UP:
+        *action = Up;
+        break;
+    case KEY_DOWN:
+        *action = Down;
+        break;
+    case ' ':
+        *action = Action;
+        break;
+    default:
+        res = false;
+        break;
+    }
+
+    if (res) {
+        *hold = (key == prev_key);
+        prev_key = key;
+    } else {
+        *hold = false;
+        prev_key = 0;
+    }
+
+    return res;
+}

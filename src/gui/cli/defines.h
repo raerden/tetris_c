@@ -5,24 +5,20 @@
 
 #define MVPRINTW(y, x, ...) mvprintw(BOARDS_BEGIN + (y), BOARDS_BEGIN + (x), __VA_ARGS__)
 #define MVADDCH(y, x, c) mvaddch(BOARDS_BEGIN + (y), BOARDS_BEGIN + (x), c)
-//#define CLEAR_BACKPOS(y, x) mvaddch(BOARDS_BEGIN + (y), BOARDS_BEGIN + (x), ' ')
 
 #define FIELD_W     10
 #define FIELD_H     20
-
+#define NEXT_SIZE   4
 #define BOARD_H     20
 #define BOARD_W     20
+#define INFO_W      12
 
-#define INFO_W   12
-
-// #define SUCCESS   0
-// #define ERROR     1
-
-// #define INITIAL_TIMEOUT  600
-// #define NO_INPUT -1
-
-// #define ESCAPE 27
-// #define ENTER_KEY 10
+#define KEY_ACTION 32 // пробел
+#define KEY_TERMINATE 27 // ESC
+#define KEY_PAUSE_UPPERCASE 80 // P
+#define KEY_PAUSE 112 // p
+#define KEY_START_UPPERCASE 83 // S
+#define KEY_START 115 // s
 
 #define COLR_RED 1
 #define COLR_ORANGE 208

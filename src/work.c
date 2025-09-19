@@ -5,45 +5,25 @@
 // #include "./brick_game/tetris/defines.h"
 #include "./brick_game/tetris/backend.h"
 
-// #define KEY_LEFT
 
-typedef enum {
-    Fsm_Start,
-    Fsm_Spawn,
-    Fsm_Moving,   //перемещение фигуры игроком
-    Fsm_Shifting, //Сдвиг фигуры вниз по таймеру
-    Fsm_Attaching,
-    Fsm_PauseGame,
-    Fsm_GameOver
-} fsm_state;
+FSM_State_t *getCurrentFSMState() {
+    static FSM_State_t State = FSM_Start;
+    return &State;
+}
 
-typedef struct {
-  int **field;
-  int **next;
-  int score;
-  int high_score;
-  int level;
-  int speed;
-  int pause;
-  int **figure;
-  int pos_x;
-  int pos_y;
-  long long time;
-} TetrisGameInfo_t;
-
-TetrisGameInfo_t *GetTetrisGameInfo() {
+TetrisGameInfo_t *getTetrisGameInfo() {
     static TetrisGameInfo_t TetrisGameInfo = {0};
     if (TetrisGameInfo.field == NULL) {
-        TetrisGameInfo.field = create_matrix(20, 10);
-        TetrisGameInfo.next = create_matrix(4, 4);
-        TetrisGameInfo.figure = create_matrix(4, 4);
+        TetrisGameInfo.field = create_matrix(FIELD_H, FIELD_W);
+        TetrisGameInfo.next = create_matrix(FIGURE_FIELD_SIZE, FIGURE_FIELD_SIZE);
+        TetrisGameInfo.figure = create_matrix(FIGURE_FIELD_SIZE, FIGURE_FIELD_SIZE);
     }
     return &TetrisGameInfo;
 }
 
 
 void userInput(UserAction_t action, bool hold) {
-    TetrisGameInfo_t *TetrisGameInfo = GetTetrisGameInfo();
+    TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
     switch (action)
     {
     case Pause:
@@ -64,119 +44,126 @@ void userInput(UserAction_t action, bool hold) {
     };
 }
 
+void copyTetrominoToField(GameInfo_t *GameInfo) {
+    const TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
+    for (int y = 0; y < TetrisGameInfo->figure_size; y++)
+        for (int x = 0; x < TetrisGameInfo->figure_size; x++) {
+            int field_x = x + TetrisGameInfo->pos_x;
+            int field_y = y + TetrisGameInfo->pos_y;
+// mvprintw(25+y, 1, "pos_x=%d, pos_y=%d", TetrisGameInfo->pos_x, TetrisGameInfo->pos_y);
+            if (TetrisGameInfo->figure[y][x] > 0 && field_x < FIELD_W &&  field_y < FIELD_H)
+                GameInfo->field[field_y][field_x] = TetrisGameInfo->figure[y][x];
+        }
+}
+
+void copyTetrisToGameInfo(GameInfo_t *dst) {
+    const TetrisGameInfo_t *src = getTetrisGameInfo();
+    copy_matrix(dst->field, src->field, FIELD_H, FIELD_W);
+    copyTetrominoToField(dst);
+    dst->next       = src->next;
+    dst->score      = src->score;
+    dst->high_score = src->high_score;
+    dst->level      = src->level;
+    dst->speed      = src->speed;
+    dst->pause      = src->pause;
+}
+
 GameInfo_t updateCurrentState() {
-    static GameInfo_t game = {0};
-    if (game.field == NULL) {
-        game.field = create_matrix(20, 10);
-        game.next = create_matrix(4, 4);
+    static GameInfo_t GameInfo = {0};
+    if (GameInfo.field == NULL) {
+        GameInfo.field = create_matrix(FIELD_H, FIELD_W);
     }
-    TetrisGameInfo_t *TetrisGameInfo = GetTetrisGameInfo();
-    game.pause = TetrisGameInfo->pause;
-    if (game.pause == 0)
-        game.score += 1;
-    return game;
+    copyTetrisToGameInfo(&GameInfo);
+    return GameInfo;
+}
+
+void spawnFigure() {
+    TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
+    copy_matrix(TetrisGameInfo->figure, TetrisGameInfo->next, FIGURE_FIELD_SIZE, FIGURE_FIELD_SIZE);
+    TetrisGameInfo->figure_size = TetrisGameInfo->next_size;
+    TetrisGameInfo->pos_x = SPAWN_X - (TetrisGameInfo->figure_size == 4 ? 1 : 0);
+    TetrisGameInfo->pos_y = SPAWN_Y;
+    GenerateNextFigure(TetrisGameInfo);
 }
 
 int main() {
-
-/*
-//Я правильно понимаю логику main()?
-
-// проинциализировали ncurses;
-// Отрисовали поле.
-
-//Cоздаем переменные:
-UserAction_t action;
-bool hold = 0;
-bool is_playing = true;
-GameInfo_t game = {0};
-// иницилазируем структуру game (создать матрицы, уровень, счет и тд)
-
-//Описываю структуру fsm с полями
-
-//Крутимся в бесконечном цикле 
-while(is_playing) {
-    следим за клавиатурой,
-    если нажали влево, {
-        присваиваем action = Left;
-        вызываем userInput(action, hold);
-        userInput меняет статус конечно автомата на move_left
-    }
-    game = updateCurrentState();
-    print_board(&game);
-}
-*/
     win_init(-1);
+
     print_board();
 
     UserAction_t action = 0;
     GameInfo_t game = {0};
-    fsm_state fsm;
-    
-    game = updateCurrentState();
+    FSM_State_t *state;
+    srand(get_time()); //сброс rand() текущим временем
+
+    GenerateNextFigure(getTetrisGameInfo());
+    spawnFigure();
+    // game = updateCurrentState();
 
     bool hold = false;
-    fsm = Start;
+    
     timeout(10);
+    
+
+    // mvprintw(25, 1, "suka");
 
     while(action != Terminate) {
-        if (process_key(&action, &hold))
-            userInput(action, hold);
-        
+        state = getCurrentFSMState();// получаем текущее состояние конечного автомата
+
+        if (process_key(&action, &hold))//читаем клавиатуру
+            userInput(action, hold);//если было нажатие, меняем FSM или вызываем соотв. функции
 
         game = updateCurrentState();
         print_stats(&game);
         if (game.pause == 1) {
             print_pause(&game);
         }
-        else
+        else {
+            getTetrisGameInfo()->score += 1;
             print_field(&game);
+        }
     }
 
 
-    free_matrix(game.field, 20);
-    free_matrix(game.next, 4);
-    TetrisGameInfo_t *TetrisGameInfo = GetTetrisGameInfo();
-    free_matrix(TetrisGameInfo->field, 20);
-    free_matrix(TetrisGameInfo->next, 4);
-    free_matrix(TetrisGameInfo->figure, 4);
+    free_matrix(game.field, FIELD_H);
+    TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
+    free_matrix(TetrisGameInfo->field, FIELD_H);
+    free_matrix(TetrisGameInfo->next, FIGURE_FIELD_SIZE);
+    free_matrix(TetrisGameInfo->figure, FIGURE_FIELD_SIZE);
 
 
     win_close();
     return 0;
 
-    game.high_score = 9999;
-    game.score = 768;
-    game.level = 2;
 
 
 
-    srand(time(NULL)); // сброс рандомайзера текущим временем
+    // srand(time(NULL)); // сброс рандомайзера текущим временем
     // srand(get_time()); // сброс рандомайзера текущим временем
 
 
     // рандомная мозайка из всех цветов 1-7
-    for (int i=0;i<20;i++)
-        for (int j=0;j<10;j++)
-            game.field[i][j] = 1 + rand() % 7;// 1 - 7
+    // for (int i=0;i<20;i++)
+    //     for (int j=0;j<10;j++)
+    //         game.field[i][j] = 1 + rand() % 7;// 1 - 7
    
-    game.next[0][0] = 1;
-    game.next[0][1] = 1;
-    game.next[0][2] = 1;
-    game.next[0][3] = 1;
+    // game.next[0][0] = 1;
+    // game.next[0][1] = 1;
+    // game.next[0][2] = 1;
+    // game.next[0][3] = 1;
 
-    print_stats(&game);
-    print_field(&game);
-    getch();
+    // print_stats(&game);
+    // print_field(&game);
+    // getch();
 
-    game.pause = 2;
-    print_pause(&game);
+    // game.pause = 2;
+    // print_pause(&game);
 
-    free_matrix(game.field, 20);
-    free_matrix(game.next, 4);
+    // free_matrix(game.field, 20);
+    // free_matrix(game.next, 4);
 
     
-    getch();
+    // getch();
     // print_field();
     // getch();
 

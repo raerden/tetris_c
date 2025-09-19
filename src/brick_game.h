@@ -1,5 +1,5 @@
-#ifndef BRICK_GAME
-#define BRICK_GAME
+#ifndef BRICK_GAME_H
+#define BRICK_GAME_H
 
 typedef enum {
   Start,

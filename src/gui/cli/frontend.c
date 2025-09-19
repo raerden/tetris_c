@@ -6,11 +6,13 @@ void win_init(int time) {
     curs_set(0);
     keypad(stdscr, TRUE);
     timeout(time);
+    set_escdelay(30);
+
     if (has_colors()) {
         start_color();
         init_pair(1, COLOR_BLACK, COLR_RED);    // палка     красная
-        init_pair(2, COLOR_BLACK, COLR_ORANGE); // Г-левая   оранжевая
-        init_pair(3, COLOR_BLACK, COLR_YELLOW); // Г-правая  желтая
+        init_pair(2, COLOR_BLACK, COLR_ORANGE); // Г-правая   оранжевая
+        init_pair(3, COLOR_BLACK, COLR_YELLOW); // Г-левая  желтая
         init_pair(4, COLOR_BLACK, COLR_PINK);   // квадрат   розовый
         init_pair(5, COLOR_BLACK, COLR_GREEN);  // z-правая  зеленая
         init_pair(6, COLOR_BLACK, COLR_BLUE);   // T         синяя
@@ -71,8 +73,8 @@ void print_rectangle(int top_y, int bottom_y, int left_x, int right_x)
 
 void print_next(GameInfo_t *game) {
     // очистка предыдущей фигуры
-    for (int i = 0; i < 4; i++)
-        for (int j = 0; j < 4; j++) {
+    for (int i = 0; i < NEXT_SIZE; i++)
+        for (int j = 0; j < NEXT_SIZE; j++) {
             MVADDCH(12 + i, BOARD_W + 4 + (j * 2 + 1), ' ');
             MVADDCH(12 + i, BOARD_W + 4 + (j * 2 + 2), ' ');
         }
@@ -83,15 +85,15 @@ void print_next(GameInfo_t *game) {
     char ch_R = color_on ? ' ' : ']';
 
     // найти цвет фигурки в матрице **next
-    for (int i = 0; color_on && i < 4; i++) 
+    for (int i = 0; color_on && i < NEXT_SIZE; i++) 
         if (game->next[0][i] > 0) {
             color = game->next[0][i];
             break;
         }
 
     if (color_on) attron(COLOR_PAIR(color));
-    for (int i = 0; i < 4; i++)
-        for (int j = 0; j < 4; j++) 
+    for (int i = 0; i < NEXT_SIZE; i++)
+        for (int j = 0; j < NEXT_SIZE; j++) 
             if (game->next[i][j]) {
                 MVADDCH(12 + i, BOARD_W + 4 + (j * 2 + 1), ch_L);
                 MVADDCH(12 + i, BOARD_W + 4 + (j * 2 + 2), ch_R);
@@ -135,14 +137,14 @@ void print_field(GameInfo_t *game) {
 
 void print_pause(GameInfo_t *game) {
     clear_field();
-    if (game->pause == 1) {
+    if (game->pause == 1) {// Пауза
         MVPRINTW(BOARD_H / 2 - 4, (BOARD_W - PAUSE_MESSAGE_LEN) / 2 + 1, PAUSE_MESSAGE);
         MVPRINTW(BOARD_H / 2 - 2, (BOARD_W - SMILE_WIDTH) / 2 + 1, SMILE_PAUSE);
         MVPRINTW(BOARD_H / 2, (BOARD_W - PRESS_P_MESSAGE_LEN) / 2 + 1, PRESS_P_MESSAGE);
-    } else if (game->pause == 2) {
+    } else if (game->pause == 2) {// Победа
         MVPRINTW(BOARD_H / 2 - 4, (BOARD_W - WIN_MESSAGE_LEN) / 2 + 1, WIN_MESSAGE);
         MVPRINTW(BOARD_H / 2 - 2, (BOARD_W - SMILE_WIDTH) / 2 + 1, SMILE_WIN);
-    } else if (game->pause == 3) {
+    } else if (game->pause == 3) {// Поражение
         MVPRINTW(BOARD_H / 2 - 4, (BOARD_W - LOSE_MESSAGE_LEN) / 2 + 1, LOSE_MESSAGE);
         MVPRINTW(BOARD_H / 2 - 2, (BOARD_W - SMILE_WIDTH) / 2 + 1, SMILE_SAD);
     }
@@ -162,13 +164,15 @@ bool process_key(UserAction_t *action, bool *hold) {
 
     switch (key)
     {
-    case 's':
+    case KEY_START:
+    case KEY_START_UPPERCASE:
         *action = Start;
         break;
-    case 'p':
+    case KEY_PAUSE:
+    case KEY_PAUSE_UPPERCASE:
         *action = Pause;
         break;
-    case 'q':
+    case KEY_TERMINATE:
         *action = Terminate;
         break;
     case KEY_LEFT:
@@ -183,7 +187,7 @@ bool process_key(UserAction_t *action, bool *hold) {
     case KEY_DOWN:
         *action = Down;
         break;
-    case ' ':
+    case KEY_ACTION:
         *action = Action;
         break;
     default:

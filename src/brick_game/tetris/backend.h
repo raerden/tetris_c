@@ -3,10 +3,14 @@
 
 #include <time.h>
 #include <stdlib.h>
+#include "../../brick_game.h"
 
 #define SPAWN_X 4
 #define SPAWN_Y 0
+#define FIELD_W     10
+#define FIELD_H     20
 #define FIGURE_FIELD_SIZE 4
+#define INITIAL_SPEED 200
 
 
 typedef enum {
@@ -17,7 +21,8 @@ typedef enum {
     FSM_Attaching,
     FSM_GamePause,
     FSM_GameWin,
-    FSM_GameOver
+    FSM_GameOver,
+    FSM_Terminate,
 } FSM_State_t;
 
 typedef struct {
@@ -41,6 +46,11 @@ long long get_time();
 int **create_matrix(int row, int col);
 void free_matrix(int **matrix, int size);
 void copy_matrix(int **dst, int **scr, int row, int col);
-void GenerateNextFigure(TetrisGameInfo_t *TetrisGameInfo);
+TetrisGameInfo_t *getTetrisGameInfo();
+void terminate(GameInfo_t *gameInfo);
+void GenerateNextFigure();
+void spawnFigure();
+void copyTetrominoToField(GameInfo_t *GameInfo);
+void TetrisToGameInfo(GameInfo_t *GameInfo);
 
 #endif

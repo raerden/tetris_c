@@ -1,6 +1,12 @@
 #ifndef BRICK_GAME_H
 #define BRICK_GAME_H
 
+
+#include <stdarg.h> // временно для отладки
+#include <ncurses.h> // временно для отладки
+
+#include <stdbool.h>
+
 typedef enum {
   Start,
   Pause,
@@ -23,7 +29,9 @@ typedef struct {
 } GameInfo_t;
 
 void userInput(UserAction_t action, bool hold);
-
 GameInfo_t updateCurrentState();
+
+// временно для отладки
+void printlog(const char *fmt, ...);
 
 #endif

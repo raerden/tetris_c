@@ -17,8 +17,8 @@
 #define KEY_TERMINATE 27 // ESC
 #define KEY_PAUSE_UPPERCASE 80 // P
 #define KEY_PAUSE 112 // p
-#define KEY_START_UPPERCASE 83 // S
-#define KEY_START 115 // s
+#define KEY_START_N 10 // \n Enter
+#define KEY_START_R 13 // \r  Enter
 
 #define COLR_RED 1
 #define COLR_ORANGE 208
@@ -32,8 +32,8 @@
 #define PRESS_ENTER_MESSAGE_LEN 20
 #define PRESS_P_MESSAGE "Press P to continue"
 #define PRESS_P_MESSAGE_LEN 19
-#define PRESS_Q_MESSAGE "Press Q to quit"
-#define PRESS_Q_MESSAGE_LEN 15
+#define PRESS_Q_MESSAGE "Press ESC to quit"
+#define PRESS_Q_MESSAGE_LEN 17
 
 #define PAUSE_MESSAGE "Game on pause"
 #define PAUSE_MESSAGE_LEN 13

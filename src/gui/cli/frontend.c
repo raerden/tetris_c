@@ -1,5 +1,6 @@
 #include "frontend.h"
 
+
 void win_init(int time) {
     initscr();
     noecho();
@@ -71,7 +72,7 @@ void print_rectangle(int top_y, int bottom_y, int left_x, int right_x)
     MVADDCH(bottom_y, i, ACS_LRCORNER);
 }
 
-void print_next(GameInfo_t *game) {
+void print_next(GameInfo_t *GameInfo) {
     // очистка предыдущей фигуры
     for (int i = 0; i < NEXT_SIZE; i++)
         for (int j = 0; j < NEXT_SIZE; j++) {
@@ -86,32 +87,32 @@ void print_next(GameInfo_t *game) {
 
     // найти цвет фигурки в матрице **next
     for (int i = 0; color_on && i < NEXT_SIZE; i++) 
-        if (game->next[0][i] > 0) {
-            color = game->next[0][i];
+        if (GameInfo->next[0][i] > 0) {
+            color = GameInfo->next[0][i];
             break;
         }
 
     if (color_on) attron(COLOR_PAIR(color));
     for (int i = 0; i < NEXT_SIZE; i++)
         for (int j = 0; j < NEXT_SIZE; j++) 
-            if (game->next[i][j]) {
+            if (GameInfo->next[i][j]) {
                 MVADDCH(12 + i, BOARD_W + 4 + (j * 2 + 1), ch_L);
                 MVADDCH(12 + i, BOARD_W + 4 + (j * 2 + 2), ch_R);
         }
     if (color_on) attroff(COLOR_PAIR(color));
 }
 
-void print_stats(GameInfo_t *game) {
+void print_stats(GameInfo_t *GameInfo) {
     MVPRINTW(2, BOARD_W + 10, "    ");
-    MVPRINTW(2, BOARD_W + 10, "%-d", game->high_score);
+    MVPRINTW(2, BOARD_W + 10, "%-d", GameInfo->high_score);
 
     MVPRINTW(5, BOARD_W + 10, "    ");
-    MVPRINTW(5, BOARD_W + 10, "%-d", game->score);
+    MVPRINTW(5, BOARD_W + 10, "%-d", GameInfo->score);
 
     MVPRINTW(8, BOARD_W + 10, "  ");
-    MVPRINTW(8, BOARD_W + 10, "%-d", game->level);
+    MVPRINTW(8, BOARD_W + 10, "%-d", GameInfo->level);
 
-    print_next(game);
+    print_next(GameInfo);
 }
 
 void clear_field() {
@@ -122,36 +123,36 @@ void clear_field() {
         }
 }
 
-void print_field(GameInfo_t *game) {
+void print_field(GameInfo_t *GameInfo) {
     bool color_on = has_colors();
     char ch_L = color_on ? ' ' : ' ';
     char ch_R = color_on ? ' ' : ' ';
     for (int i = 0; i < BOARD_H; i++)
         for (int j = 0; j < FIELD_W; j++) {
-            if (color_on) attron(COLOR_PAIR(game->field[i][j]));
+            if (color_on) attron(COLOR_PAIR(GameInfo->field[i][j]));
             MVADDCH(i+1, (j * 2 + 1), ch_L);
             MVADDCH(i+1, (j * 2 + 2), ch_R);
-            if (color_on) attroff(COLOR_PAIR(game->field[i][j]));
+            if (color_on) attroff(COLOR_PAIR(GameInfo->field[i][j]));
         }
 }
 
-void print_pause(GameInfo_t *game) {
+void print_pause(GameInfo_t *GameInfo) {
     clear_field();
-    if (game->pause == 1) {// Пауза
+    if (GameInfo->pause == 1) {// Пауза
         MVPRINTW(BOARD_H / 2 - 4, (BOARD_W - PAUSE_MESSAGE_LEN) / 2 + 1, PAUSE_MESSAGE);
         MVPRINTW(BOARD_H / 2 - 2, (BOARD_W - SMILE_WIDTH) / 2 + 1, SMILE_PAUSE);
         MVPRINTW(BOARD_H / 2, (BOARD_W - PRESS_P_MESSAGE_LEN) / 2 + 1, PRESS_P_MESSAGE);
-    } else if (game->pause == 2) {// Победа
+    } else if (GameInfo->pause == 2) {// Победа
         MVPRINTW(BOARD_H / 2 - 4, (BOARD_W - WIN_MESSAGE_LEN) / 2 + 1, WIN_MESSAGE);
         MVPRINTW(BOARD_H / 2 - 2, (BOARD_W - SMILE_WIDTH) / 2 + 1, SMILE_WIN);
-    } else if (game->pause == 3) {// Поражение
+    } else if (GameInfo->pause == 3) {// Поражение
         MVPRINTW(BOARD_H / 2 - 4, (BOARD_W - LOSE_MESSAGE_LEN) / 2 + 1, LOSE_MESSAGE);
         MVPRINTW(BOARD_H / 2 - 2, (BOARD_W - SMILE_WIDTH) / 2 + 1, SMILE_SAD);
     }
-    if (game->pause == 2 || game->pause == 3) {
+    if (GameInfo->pause == 2 || GameInfo->pause == 3) {
         MVPRINTW(BOARD_H / 2, (BOARD_W - PRESS_ENTER_MESSAGE_LEN) / 2 + 1, PRESS_ENTER_MESSAGE);
     }
-    if (game->pause == 1 || game->pause == 2 || game->pause == 3) {
+    if (GameInfo->pause == 1 || GameInfo->pause == 2 || GameInfo->pause == 3) {
         MVPRINTW(BOARD_H / 2 + 1, (BOARD_W - PRESS_Q_MESSAGE_LEN) / 2 + 1 , PRESS_Q_MESSAGE);
     }
 }
@@ -164,8 +165,8 @@ bool process_key(UserAction_t *action, bool *hold) {
 
     switch (key)
     {
-    case KEY_START:
-    case KEY_START_UPPERCASE:
+    case KEY_START_R:
+    case KEY_START_N:
         *action = Start;
         break;
     case KEY_PAUSE:
@@ -204,4 +205,14 @@ bool process_key(UserAction_t *action, bool *hold) {
     }
 
     return res;
+}
+
+
+void renderGame(GameInfo_t *GameInfo) {
+    print_stats(GameInfo);
+    print_next(GameInfo);
+    if (GameInfo->pause == 0)
+        print_field(GameInfo);
+    else 
+        print_pause(GameInfo);
 }

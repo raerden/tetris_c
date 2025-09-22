@@ -33,5 +33,6 @@ GameInfo_t updateCurrentState();
 
 // временно для отладки
 void printlog(const char *fmt, ...);
+void printfsm();
 
 #endif

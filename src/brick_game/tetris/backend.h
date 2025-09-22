@@ -36,8 +36,10 @@ typedef struct {
   int speed;
   int pause;
   int **figure;
-  int figure_size; //размер фигуры, для упрощения поворотов
-  int pos_x;
+  int **figure_rotate;
+  int figure_w; //размер фигуры, для логики поворотов прямоугольниками
+  int figure_h; 
+  int pos_x; // левый верхний угол матрицы с фигурой
   int pos_y;
   long long time;
 } TetrisGameInfo_t;
@@ -46,6 +48,7 @@ long long get_time();
 int **create_matrix(int row, int col);
 void free_matrix(int **matrix, int size);
 void copy_matrix(int **dst, int **scr, int row, int col);
+void zero_matrix(int **matrix, int row, int col);
 TetrisGameInfo_t *getTetrisGameInfo();
 void terminate(GameInfo_t *gameInfo);
 void GenerateNextFigure();

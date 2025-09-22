@@ -33,12 +33,19 @@ void copy_matrix(int **dst, int **src, int row, int col) {
             dst[i][j] = src[i][j];
 }
 
+void zero_matrix(int **matrix, int row, int col) {
+    for (int i = 0; i < row; i++)
+        for (int j = 0; j < col; j++)
+            matrix[i][j] = 0;
+}
+
 TetrisGameInfo_t *getTetrisGameInfo() {
     static TetrisGameInfo_t TetrisGameInfo = {0};
     if (TetrisGameInfo.field == NULL) {
         TetrisGameInfo.field = create_matrix(FIELD_H, FIELD_W);
         TetrisGameInfo.next = create_matrix(FIGURE_FIELD_SIZE, FIGURE_FIELD_SIZE);
         TetrisGameInfo.figure = create_matrix(FIGURE_FIELD_SIZE, FIGURE_FIELD_SIZE);
+        TetrisGameInfo.figure_rotate = create_matrix(FIGURE_FIELD_SIZE, FIGURE_FIELD_SIZE);
     }
     return &TetrisGameInfo;
 }
@@ -50,6 +57,7 @@ void terminate(GameInfo_t *gameInfo) {
     free_matrix(TetrisGameInfo->field, FIELD_H);
     free_matrix(TetrisGameInfo->next, FIGURE_FIELD_SIZE);
     free_matrix(TetrisGameInfo->figure, FIGURE_FIELD_SIZE);
+    free_matrix(TetrisGameInfo->figure_rotate, FIGURE_FIELD_SIZE);
 }
 
 void GenerateNextFigure() {
@@ -60,7 +68,7 @@ void GenerateNextFigure() {
     for (int i = 0; i < FIGURE_FIELD_SIZE; i++)
         for (int j = 0; j < FIGURE_FIELD_SIZE; j++)
             TetrisGameInfo->next[i][j] = 0;
-
+figure = 3;
     switch (figure)
     {
     case 1: // Палка.

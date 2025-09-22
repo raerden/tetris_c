@@ -7,21 +7,60 @@
 #include "./brick_game.h"
 
 // временно для отладки
-void printlog(const char *fmt, ...) {
+void printlog2(const char *fmt, ...) {
     static int row = 25;  // начинаем печатать с 0-й строки
     if (row > 32) row = 25;
     va_list args;
     va_start(args, fmt);
 
-    // печатаем строку с аргументами, как в printf
-    // mvprintw(row++, 1, "");       // перемещаем курсор
-    move(row++, 1); 
+    row++;
+    move(row, 1);
     vw_printw(stdscr, fmt, args); // печать форматированной строки
     va_end(args);
 
     refresh(); // обновляем экран
 }
-//mvprintw(25+y, 1, "x(col)=%d, y(row)=%d, field_x(col)=%d, field_y(row)=%d", x, y, field_x, field_y);
+
+void printlog(const char *fmt, ...) {
+    static WINDOW *logwin = NULL;
+    static int height = 8;   // сколько строк для лога
+    static int width  = 80;  // ширина окна
+    static int starty = 25;  // начальная позиция по Y
+    static int startx = 1;   // начальная позиция по X
+
+    if (logwin == NULL) {
+        logwin = newwin(height, width, starty, startx);
+        scrollok(logwin, TRUE);   // разрешаем прокрутку
+    }
+
+    va_list args;
+    va_start(args, fmt);
+    vw_printw(logwin, fmt, args);
+    va_end(args);
+
+    wprintw(logwin, "\n"); // перевод строки
+    wrefresh(logwin);
+}
+
+void printfsm() {
+    TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
+    switch (TetrisGameInfo->status)
+    {
+    // case 0: printlog("FSM_Start         "); break;
+    // case 1: printlog("FSM_Spawn         "); break;
+    // case 2: printlog("FSM_Moving        "); break;
+    // case 3: printlog("FSM_Shifting      "); break;
+    // case 4: printlog("FSM_Attaching     "); break;
+    // case 5: printlog("FSM_GamePause     "); break;
+    // case 6: printlog("FSM_GameWin       "); break;
+    // case 7: printlog("FSM_GameOver      "); break;
+    // case 8: printlog("FSM_Terminate     "); break;
+    
+    default:
+        break;
+    }
+}
+
 
 // функция brick_game.c
 GameInfo_t updateCurrentState() {
@@ -30,13 +69,13 @@ GameInfo_t updateCurrentState() {
         GameInfo.field = create_matrix(FIELD_H, FIELD_W);
     }
 
-    TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
-    unsigned long long time = get_time();
-    
-     if (TetrisGameInfo->status = FSM_Moving && time - TetrisGameInfo->time > TetrisGameInfo->speed) {
-        // printlog("speed= %d", TetrisGameInfo->speed);
-        TetrisGameInfo->status = FSM_Shifting;
-     }
+    // TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
+    // unsigned long long time = get_time();
+    //  if (TetrisGameInfo->status == FSM_Moving &&
+    //         time - TetrisGameInfo->time > TetrisGameInfo->speed) {
+    //     TetrisGameInfo->status = FSM_Shifting;
+    //     printlog("updateCurrentState() set FSM_Shifting by timer");
+    //  }
 
     TetrisToGameInfo(&GameInfo);
 
@@ -45,6 +84,28 @@ GameInfo_t updateCurrentState() {
     GameInfo.score = scr;
 
     return GameInfo;
+}
+
+void rotateFigure() {
+    TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
+    zero_matrix(TetrisGameInfo->figure_rotate, FIGURE_FIELD_SIZE, FIGURE_FIELD_SIZE);
+    for (int row = 0; row < TetrisGameInfo->figure_size; row++)
+        for (int col = TetrisGameInfo->figure_size - 1; col >=0 ; col--)
+            TetrisGameInfo->figure_rotate[2 - col][row] = TetrisGameInfo->figure[row][col];
+    
+    copy_matrix(TetrisGameInfo->figure, TetrisGameInfo->figure_rotate, FIGURE_FIELD_SIZE, FIGURE_FIELD_SIZE);
+}
+
+void moveLeft() {
+    TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
+    if (TetrisGameInfo->pos_x > 0)
+        TetrisGameInfo->pos_x -= 1;
+}
+
+void moveRigth() {
+    TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
+    if (TetrisGameInfo->pos_x + 3 < FIELD_W )
+        TetrisGameInfo->pos_x += 1;
 }
 
 void startGame() {
@@ -56,7 +117,7 @@ void startGame() {
     GenerateNextFigure();
     spawnFigure();
     TetrisGameInfo->status = FSM_Moving;
-    printlog("startGame() set to FSM_Moving");
+    printlog("startGame() set to FSM_Moving             ");
 }
 
 void gamePause() {
@@ -64,12 +125,14 @@ void gamePause() {
     if (TetrisGameInfo->pause == 1) {
         TetrisGameInfo->pause = 0;
         TetrisGameInfo->time = get_time();
-        printlog("pause=0");
-        timeout(10);
+        TetrisGameInfo->status = FSM_Moving;
+        printlog("Play game                ");
+        timeout(100);
     }
     else if (TetrisGameInfo->pause == 0) {
         TetrisGameInfo->pause = 1;
-        printlog("pause=1");
+        TetrisGameInfo->status = FSM_GamePause;
+        printlog("Pause game                 ");
         timeout(-1);
     }
 }
@@ -80,8 +143,8 @@ void shiftFigure() {
     TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
     if (TetrisGameInfo->pos_y < FIELD_H - 5) {
         TetrisGameInfo->pos_y += 1;
-        TetrisGameInfo->status = FSM_Moving;
         TetrisGameInfo->time = get_time();
+        TetrisGameInfo->status = FSM_Moving;
         printlog("shiftFigure() set to FSM_Moving");
     } else {
         TetrisGameInfo->status = FSM_Spawn;
@@ -99,11 +162,16 @@ void userInput(UserAction_t action, bool hold) {
         startGame();
     } else if (action == Pause && TetrisGameInfo->status != FSM_Start) {
         gamePause();
+    } else if (action == Action && TetrisGameInfo->status == FSM_Moving) {
+        rotateFigure();
+        // TetrisGameInfo->status = FSM_Shifting;
+        // if (TetrisGameInfo->speed > 100)
+        //     TetrisGameInfo->speed -= 100;
+        printlog("userInput() action = Left");
     } else if (action == Left && TetrisGameInfo->status == FSM_Moving) {
-        // shiftFigure();
-        TetrisGameInfo->status = FSM_Shifting;
-        printlog("userInput() set to FSM_Shifting");
-
+        moveLeft();
+    } else if (action == Right && TetrisGameInfo->status == FSM_Moving) {
+        moveRigth();
     } else if (action == Terminate) {
         TetrisGameInfo->status = FSM_Terminate;
     }
@@ -132,11 +200,11 @@ int main() {
     TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
 
     printlog("Initial. fsm=%d", TetrisGameInfo->status);
-    timeout(10);
+    timeout(100);
 
     while(TetrisGameInfo->status != FSM_Terminate) {
         TetrisGameInfo = getTetrisGameInfo();
-        printlog("FSM_%d", TetrisGameInfo->status);
+        printfsm();
         if (TetrisGameInfo->status == FSM_Start) {
             userAction();// чтение клавиатуры.
         } else if (TetrisGameInfo->status == FSM_Spawn) {
@@ -151,14 +219,15 @@ int main() {
             shiftFigure();
         } else if (TetrisGameInfo->status == FSM_Attaching) {
             //AttachFigure();
-        // } else if (TetrisGameInfo->status == FSM_GamePause) {
-        //     gamePause();
+        } else if (TetrisGameInfo->status == FSM_GamePause) {
+            userAction();
         } else if (TetrisGameInfo->status == FSM_GameWin) {
             // GameWin();
         } else if (TetrisGameInfo->status == FSM_GameOver) {
             // GameOver();
         }
-
+        
+        
         if (TetrisGameInfo->status != FSM_Start) {
             gameInfo = updateCurrentState();
             renderGame(&gameInfo);

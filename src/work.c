@@ -88,24 +88,45 @@ GameInfo_t updateCurrentState() {
 
 void rotateFigure() {
     TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
-    zero_matrix(TetrisGameInfo->figure_rotate, FIGURE_FIELD_SIZE, FIGURE_FIELD_SIZE);
-    for (int row = 0; row < TetrisGameInfo->figure_size; row++)
-        for (int col = TetrisGameInfo->figure_size - 1; col >=0 ; col--)
-            TetrisGameInfo->figure_rotate[2 - col][row] = TetrisGameInfo->figure[row][col];
-    
-    copy_matrix(TetrisGameInfo->figure, TetrisGameInfo->figure_rotate, FIGURE_FIELD_SIZE, FIGURE_FIELD_SIZE);
+    clear_matrix(TetrisGameInfo->figure_tmp, FIGURE_FIELD_SIZE, FIGURE_FIELD_SIZE);
+    //поворот направо
+    //x идет в строку y
+    //y идет в x, но с конца
+    for (int y = 0; y < TetrisGameInfo->figure_h; y++) {
+        for (int x = 0; x < TetrisGameInfo->figure_w; x++) {
+            TetrisGameInfo->figure_tmp[x][TetrisGameInfo->figure_h - 1 - y] = TetrisGameInfo->figure[y][x];
+        }
+    }
+
+    //проверить не перекрывает ли .figure_rotate не пустые клетки.
+    // если нет. То копируем повернутую фигуру в .figure
+    // передавать новый x с учетом коллизии об правую стенку при повороте
+    // bool is_collided(int **figure, x, y);
+    if (true) {
+        int tmp = TetrisGameInfo->figure_w;
+        TetrisGameInfo->figure_w = TetrisGameInfo->figure_h;
+        TetrisGameInfo->figure_h = tmp;
+        copy_matrix(TetrisGameInfo->figure, TetrisGameInfo->figure_tmp, FIGURE_FIELD_SIZE, FIGURE_FIELD_SIZE);
+        if (TetrisGameInfo->pos_x + TetrisGameInfo->figure_w > FIELD_W) {
+            TetrisGameInfo->pos_x = TetrisGameInfo->pos_x - (TetrisGameInfo->pos_x + TetrisGameInfo->figure_w - FIELD_W);
+            // x +w =  11
+            // field = 10
+        }
+    }
 }
 
 void moveLeft() {
     TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
     if (TetrisGameInfo->pos_x > 0)
         TetrisGameInfo->pos_x -= 1;
+    printlog("x=%d x+w=%d", TetrisGameInfo->pos_x, TetrisGameInfo->pos_x + TetrisGameInfo->figure_w);
 }
 
 void moveRigth() {
     TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
-    if (TetrisGameInfo->pos_x + 3 < FIELD_W )
+    if (TetrisGameInfo->pos_x + TetrisGameInfo->figure_w < FIELD_W )
         TetrisGameInfo->pos_x += 1;
+    printlog("x=%d x+w=%d", TetrisGameInfo->pos_x, TetrisGameInfo->pos_x + TetrisGameInfo->figure_w);
 }
 
 void startGame() {
@@ -164,14 +185,12 @@ void userInput(UserAction_t action, bool hold) {
         gamePause();
     } else if (action == Action && TetrisGameInfo->status == FSM_Moving) {
         rotateFigure();
-        // TetrisGameInfo->status = FSM_Shifting;
-        // if (TetrisGameInfo->speed > 100)
-        //     TetrisGameInfo->speed -= 100;
-        printlog("userInput() action = Left");
     } else if (action == Left && TetrisGameInfo->status == FSM_Moving) {
         moveLeft();
     } else if (action == Right && TetrisGameInfo->status == FSM_Moving) {
         moveRigth();
+    } else if (action == Up && TetrisGameInfo->status == FSM_Moving) {
+        spawnFigure();
     } else if (action == Terminate) {
         TetrisGameInfo->status = FSM_Terminate;
     }

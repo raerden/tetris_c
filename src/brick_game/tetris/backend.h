@@ -29,14 +29,15 @@ typedef struct {
   FSM_State_t status;
   int **field;
   int **next;
-  int next_size;
+  int next_w;
+  int next_h;
   int score;
   int high_score;
   int level;
   int speed;
   int pause;
   int **figure;
-  int **figure_rotate;
+  int **figure_tmp;
   int figure_w; //размер фигуры, для логики поворотов прямоугольниками
   int figure_h; 
   int pos_x; // левый верхний угол матрицы с фигурой
@@ -48,7 +49,7 @@ long long get_time();
 int **create_matrix(int row, int col);
 void free_matrix(int **matrix, int size);
 void copy_matrix(int **dst, int **scr, int row, int col);
-void zero_matrix(int **matrix, int row, int col);
+void clear_matrix(int **matrix, int row, int col);
 TetrisGameInfo_t *getTetrisGameInfo();
 void terminate(GameInfo_t *gameInfo);
 void GenerateNextFigure();

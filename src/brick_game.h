@@ -1,7 +1,6 @@
 #ifndef BRICK_GAME_H
 #define BRICK_GAME_H
 
-
 #include <stdarg.h> // временно для отладки
 #include <ncurses.h> // временно для отладки
 

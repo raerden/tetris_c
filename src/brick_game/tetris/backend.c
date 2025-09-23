@@ -6,19 +6,19 @@ long long get_time() {
   return (long long)ts.tv_sec * 1000 + ts.tv_nsec / 1000000LL;
 }
 
-int **create_matrix(int row, int col) {
+int **createMatrix(int row, int col) {
     int **matrix = (int **)calloc(row, sizeof(int*));
     for(int i=0; i < row; i++) {
         matrix[i] = (int *)calloc(col, sizeof(int));
         if (matrix[i] == NULL) {
-            free_matrix(matrix, row);
+            freeMatrix(matrix, row);
             break;
         }
     }
     return matrix;
 }
 
-void free_matrix(int **matrix, int size) {
+void freeMatrix(int **matrix, int size) {
     if (matrix != NULL) {
         for (int i = 0; i < size; i++)
             free(matrix[i]);
@@ -27,13 +27,13 @@ void free_matrix(int **matrix, int size) {
     matrix = NULL;
 }
 
-void copy_matrix(int **dst, int **src, int row, int col) {
+void copyMatrix(int **dst, int **src, int row, int col) {
     for (int i = 0; i < row; i++)
         for (int j = 0; j < col; j++)
             dst[i][j] = src[i][j];
 }
 
-void clear_matrix(int **matrix, int row, int col) {
+void clearMatrix(int **matrix, int row, int col) {
     for (int i = 0; i < row; i++)
         for (int j = 0; j < col; j++)
             matrix[i][j] = 0;
@@ -42,10 +42,10 @@ void clear_matrix(int **matrix, int row, int col) {
 TetrisGameInfo_t *getTetrisGameInfo() {
     static TetrisGameInfo_t TetrisGameInfo = {0};
     if (TetrisGameInfo.field == NULL) {
-        TetrisGameInfo.field = create_matrix(FIELD_H, FIELD_W);
-        TetrisGameInfo.next = create_matrix(FIGURE_FIELD_SIZE, FIGURE_FIELD_SIZE);
-        TetrisGameInfo.figure = create_matrix(FIGURE_FIELD_SIZE, FIGURE_FIELD_SIZE);
-        TetrisGameInfo.figure_tmp = create_matrix(FIGURE_FIELD_SIZE, FIGURE_FIELD_SIZE);
+        TetrisGameInfo.field = createMatrix(FIELD_H, FIELD_W);
+        TetrisGameInfo.next = createMatrix(FIGURE_FIELD_SIZE, FIGURE_FIELD_SIZE);
+        TetrisGameInfo.figure = createMatrix(FIGURE_FIELD_SIZE, FIGURE_FIELD_SIZE);
+        TetrisGameInfo.figure_tmp = createMatrix(FIGURE_FIELD_SIZE, FIGURE_FIELD_SIZE);
     }
     return &TetrisGameInfo;
 }
@@ -53,14 +53,14 @@ TetrisGameInfo_t *getTetrisGameInfo() {
 void terminate(GameInfo_t *gameInfo) {
     TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
 
-    free_matrix(gameInfo->field, FIELD_H);
-    free_matrix(TetrisGameInfo->field, FIELD_H);
-    free_matrix(TetrisGameInfo->next, FIGURE_FIELD_SIZE);
-    free_matrix(TetrisGameInfo->figure, FIGURE_FIELD_SIZE);
-    free_matrix(TetrisGameInfo->figure_tmp, FIGURE_FIELD_SIZE);
+    freeMatrix(gameInfo->field, FIELD_H);
+    freeMatrix(TetrisGameInfo->field, FIELD_H);
+    freeMatrix(TetrisGameInfo->next, FIGURE_FIELD_SIZE);
+    freeMatrix(TetrisGameInfo->figure, FIGURE_FIELD_SIZE);
+    freeMatrix(TetrisGameInfo->figure_tmp, FIGURE_FIELD_SIZE);
 }
 
-void GenerateNextFigure() {
+void genNextFigure() {
     TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
     //  Номер фигуры также является её цветом.
     int figure = 1 + rand() % 7;
@@ -133,34 +133,43 @@ void GenerateNextFigure() {
 }
 
 void spawnFigure() {
+// проверить коллизию из фигуры next и перевести FSM в gameover
+
     TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
-    copy_matrix(TetrisGameInfo->figure, TetrisGameInfo->next, FIGURE_FIELD_SIZE, FIGURE_FIELD_SIZE);
+    copyMatrix(TetrisGameInfo->figure, TetrisGameInfo->next, FIGURE_FIELD_SIZE, FIGURE_FIELD_SIZE);
     TetrisGameInfo->figure_w = TetrisGameInfo->next_w;
     TetrisGameInfo->figure_h = TetrisGameInfo->next_h;
     TetrisGameInfo->pos_x = SPAWN_X - (TetrisGameInfo->figure_w == 4 ? 1 : 0);
     TetrisGameInfo->pos_y = SPAWN_Y;
-    GenerateNextFigure();
+    genNextFigure();
     TetrisGameInfo->status = FSM_Moving;
     TetrisGameInfo->time = get_time();
     printlog("spawnFigure() set to FSM_Moving");
 }
 
-void copyTetrominoToField(GameInfo_t *GameInfo) {
+void copyFigureToField() {
     const TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
     for (int y = 0; y < TetrisGameInfo->figure_h; y++)
         for (int x = 0; x < TetrisGameInfo->figure_w; x++) {
             int field_x = x + TetrisGameInfo->pos_x;
             int field_y = y + TetrisGameInfo->pos_y;
-//mvprintw(25+y, 1, "x(col)=%d, y(row)=%d, field_x(col)=%d, field_y(row)=%d", x, y, field_x, field_y);
-            if (TetrisGameInfo->figure[y][x] > 0 && field_x < FIELD_W &&  field_y < FIELD_H)
-                GameInfo->field[field_y][field_x] = TetrisGameInfo->figure[y][x];
+            if (TetrisGameInfo->figure[y][x] > 0 && field_x < FIELD_W && field_y < FIELD_H)
+                TetrisGameInfo->field[field_y][field_x] = TetrisGameInfo->figure[y][x];
         }
 }
 
-void TetrisToGameInfo(GameInfo_t *GameInfo) {
+void tetrisToGameInfo(GameInfo_t *GameInfo) {
     const TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
-    copy_matrix(GameInfo->field, TetrisGameInfo->field, FIELD_H, FIELD_W);
-    copyTetrominoToField(GameInfo);
+    copyMatrix(GameInfo->field, TetrisGameInfo->field, FIELD_H, FIELD_W);
+    //copyFigureToField(GameInfo);
+    for (int y = 0; y < TetrisGameInfo->figure_h; y++)
+        for (int x = 0; x < TetrisGameInfo->figure_w; x++) {
+            int field_x = x + TetrisGameInfo->pos_x;
+            int field_y = y + TetrisGameInfo->pos_y;
+            if (TetrisGameInfo->figure[y][x] > 0 && field_x < FIELD_W && field_y < FIELD_H)
+                GameInfo->field[field_y][field_x] = TetrisGameInfo->figure[y][x];
+        }
+
     GameInfo->next = TetrisGameInfo->next;
     GameInfo->score = TetrisGameInfo->score;
     GameInfo->high_score = TetrisGameInfo->high_score;

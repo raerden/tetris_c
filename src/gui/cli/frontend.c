@@ -137,7 +137,12 @@ void print_field(GameInfo_t *GameInfo) {
 }
 
 void print_pause(GameInfo_t *GameInfo) {
-    clear_field();
+    for (int i = FIELD_H / 2 - 4; i < FIELD_H / 2 + 1; i++)
+        for (int j = 0; j < FIELD_W; j++) {
+            MVADDCH(i+1, (j * 2 + 1), ' ');
+            MVADDCH(i+1, (j * 2 + 2), ' ');
+        }
+
     if (GameInfo->pause == 1) {// Пауза
         MVPRINTW(BOARD_H / 2 - 4, (BOARD_W - PAUSE_MESSAGE_LEN) / 2 + 1, PAUSE_MESSAGE);
         MVPRINTW(BOARD_H / 2 - 2, (BOARD_W - SMILE_WIDTH) / 2 + 1, SMILE_PAUSE);
@@ -152,7 +157,7 @@ void print_pause(GameInfo_t *GameInfo) {
     if (GameInfo->pause == 2 || GameInfo->pause == 3) {
         MVPRINTW(BOARD_H / 2, (BOARD_W - PRESS_ENTER_MESSAGE_LEN) / 2 + 1, PRESS_ENTER_MESSAGE);
     }
-    if (GameInfo->pause == 1 || GameInfo->pause == 2 || GameInfo->pause == 3) {
+    if (GameInfo->pause > 0) {
         MVPRINTW(BOARD_H / 2 + 1, (BOARD_W - PRESS_Q_MESSAGE_LEN) / 2 + 1 , PRESS_Q_MESSAGE);
     }
 }

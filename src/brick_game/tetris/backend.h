@@ -10,7 +10,8 @@
 #define FIELD_W     10
 #define FIELD_H     20
 #define FIGURE_FIELD_SIZE 4
-#define INITIAL_SPEED 200
+#define INITIAL_SPEED 200 // установить на 1000
+#define GETCH_WAIT 15
 
 
 typedef enum {
@@ -46,15 +47,16 @@ typedef struct {
 } TetrisGameInfo_t;
 
 long long get_time();
-int **create_matrix(int row, int col);
-void free_matrix(int **matrix, int size);
-void copy_matrix(int **dst, int **scr, int row, int col);
-void clear_matrix(int **matrix, int row, int col);
+void delay_ms(int milliseconds);
+int **createMatrix(int row, int col);
+void freeMatrix(int **matrix, int size);
+void copyMatrix(int **dst, int **scr, int row, int col);
+void clearMatrix(int **matrix, int row, int col);
 TetrisGameInfo_t *getTetrisGameInfo();
 void terminate(GameInfo_t *gameInfo);
-void GenerateNextFigure();
+void genNextFigure();
 void spawnFigure();
-void copyTetrominoToField(GameInfo_t *GameInfo);
-void TetrisToGameInfo(GameInfo_t *GameInfo);
+void copyFigureToField();
+void tetrisToGameInfo(GameInfo_t *GameInfo);
 
 #endif

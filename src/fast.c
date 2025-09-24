@@ -1,31 +1,28 @@
-//#define _POSIX_C_SOURCE 199309L
-// #include <unistd.h>
-#include <time.h>
 #include <stdio.h>
+#include <math.h>
 
-// void delay_ms(int milliseconds) {
-//     // usleep(milliseconds * 1000); // мс → мкс
-//     struct timespec ts;
-//     ts.tv_sec = milliseconds / 1000;                  // секунды
-//     ts.tv_nsec = (milliseconds % 1000) * 1000000L;    // наносекунды
-//     nanosleep(&ts, NULL);
-// }
-
-long long get_time() {
-    struct timespec ts;
-    timespec_get(&ts, TIME_UTC);
-  return (long long)ts.tv_sec * 1000 + ts.tv_nsec / 1000000LL;
+double my_pow(double x, int y) {
+    double res = 1;
+    for (int i = 0; i < y; i++)
+        res *= x;
+    return res;
 }
 
-void delay_ms(int milliseconds) {
-    long long time = get_time();
-    while(get_time() - time < milliseconds) ;
+int calcSpeed(int level) {
+    double res = 1;
+    for (int i = 0; i < level; i++)
+        res *= 0.8;
+    return (int)1250 * res;
 }
 
 int main() {
-    delay_ms(500);
-    // sleep(1);
     
-    // printf("Seconds: %ld, Microseconds: %ld\n", seconds, microseconds);
+    // for (int i=1; i < 11; i++) 
+    //     printf("%d - mypow=%d - calcspeed=%d\n", (int)(1250 * pow(0.8, i)), (int)(1250 * my_pow(0.8, i)), calcSpeed(i));
+    
+    printf("%d\n", 600 / 600);//1
+    printf("%d\n", 700 / 600);//1 надо 2
+    printf("%d\n", 1300 / 600);//2
+    printf("%d\n", 2000 / 600);//3
     return 0;
 }

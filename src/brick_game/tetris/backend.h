@@ -10,9 +10,10 @@
 #define FIELD_W     10
 #define FIELD_H     20
 #define FIGURE_FIELD_SIZE 4
-#define INITIAL_SPEED 200 // установить на 1000
-#define GETCH_WAIT 15
-
+#define INITIAL_SPEED 1250
+#define GETCH_TIMEOUT 15
+#define LEVEL_TRESHOLD 600
+#define MAX_LEVEL 10
 
 typedef enum {
     FSM_Start,

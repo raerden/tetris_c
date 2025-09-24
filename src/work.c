@@ -58,7 +58,7 @@ GameInfo_t updateCurrentState() {
     long long time = getTime();
     if (currentState(FSM_Moving) &&
         time - TetrisGameInfo->time > TetrisGameInfo->speed) {
-        TetrisGameInfo->time = getTime();
+        TetrisGameInfo->time = time;
         setState(FSM_Shifting);
         printlog("updateCurrentState() set FSM_Shifting by timer");
     }
@@ -95,14 +95,41 @@ void moveDown() {
         TetrisGameInfo->pos_y + TetrisGameInfo->figure_h);
 }
 
+void gameWin() {
+    TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
+    TetrisGameInfo->pause = 2;
+    setState(FSM_Start);
+}
+
+void gameOver() {
+    TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
+    TetrisGameInfo->pause = 3;
+    setState(FSM_Start);
+}
+
+int calcSpeed(int level) {
+    //вычисление скорости по формуле (1250 * (0,8 ^ level))
+    double degree = 1;
+    for (int i = 0; i < level; i++)
+        degree *= 0.8;
+    return (int)INITIAL_SPEED * degree;
+}
+
+void saveBestScore() {
+
+}
+
+int loadBestScore() {
+    return 0;
+}
 
 void startGame() {
     TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
 
     TetrisGameInfo->score = 0;
-    TetrisGameInfo->high_score = 0; // загрузить best score
-    TetrisGameInfo->level = 0;
-    TetrisGameInfo->speed = INITIAL_SPEED;
+    TetrisGameInfo->high_score = loadBestScore();
+    TetrisGameInfo->level = 1;
+    TetrisGameInfo->speed = calcSpeed(TetrisGameInfo->level);
     TetrisGameInfo->pause = 0;
 
     clearMatrix(TetrisGameInfo->field, FIELD_H, FIELD_W);
@@ -116,8 +143,8 @@ void shiftFigure() {
     TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
     int max_y = FIELD_H - TetrisGameInfo->figure_h;
     if (TetrisGameInfo->pos_y == max_y || isCollided(TetrisGameInfo->figure, \
-        TetrisGameInfo->figure_w, TetrisGameInfo->figure_h, \
-        TetrisGameInfo->pos_x, TetrisGameInfo->pos_y + 1)) {
+        TetrisGameInfo->figure_h, TetrisGameInfo->figure_w, \
+        TetrisGameInfo->pos_y + 1, TetrisGameInfo->pos_x)) {
             setState(FSM_Attaching);
         } else {
             TetrisGameInfo->pos_y += 1;
@@ -139,7 +166,8 @@ void userInput(UserAction_t action, bool hold) {
             case Action: rotateFigure(); break;
             case Left: moveLeft(); break;
             case Right: moveRigth(); break;
-            case Up: spawnFigure(); break;
+            case Up: gameWin(); break;
+            // case Up: spawnFigure(); break;
             case Down: dropDown(); break;
         }
     }
@@ -152,9 +180,58 @@ void userAction() {
         userInput(action, hold);
 }
 
+bool isFullRow(int **field, int row) {
+    bool full = true;
+    for (int col = 0; full && col < FIELD_W; col++)
+        full = field[row][col] != 0;
+    return full;
+}
+
+void removeRow(int **field, int row) {
+    int *tmp = field[row];
+    for (int r = row; r > 0; r--)
+        field[r] = field[r - 1];
+    field[0] = tmp;
+    for (int col = 0; col < FIELD_W; col++)
+        field[0][col] = 0;
+}
+
+int calcScore(int full_rows) {
+    int score = 0;
+    switch (full_rows)
+    {
+        case 1: score = 100; break;
+        case 2: score = 300; break;
+        case 3: score = 700; break;
+        case 4: score = 1500; break;
+    }
+    return score;
+}
+
 void deleteLines() {
     TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
-    
+
+    int full_rows = 0;
+    for (int row = FIELD_H - 1; row > 0; row--)
+        while(isFullRow(TetrisGameInfo->field, row)) {
+            removeRow(TetrisGameInfo->field, row);
+            full_rows++;
+        }
+
+    if (full_rows > 0) {
+        TetrisGameInfo->score += calcScore(full_rows);
+
+        if (TetrisGameInfo->score > TetrisGameInfo->high_score)
+            TetrisGameInfo->high_score = TetrisGameInfo->score;
+        
+        int level = TetrisGameInfo->score / LEVEL_TRESHOLD + 1;
+        if (level > 10) {
+            gameWin();
+        } else if (level > TetrisGameInfo->level) {
+            TetrisGameInfo->level = level;
+            TetrisGameInfo->speed = calcSpeed(level);
+        }
+    }
 }
 
 int main() {
@@ -171,7 +248,7 @@ int main() {
     TetrisGameInfo->pause = 4;// Приглашение к игре.
 
     printlog("Initial. fsm=%d", TetrisGameInfo->state);
-    timeout(GETCH_WAIT);
+    timeout(GETCH_TIMEOUT);
 
     while(!currentState(FSM_Terminate)) {
         if (currentState(FSM_Start)) {

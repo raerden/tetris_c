@@ -36,5 +36,5 @@ mem: runbuild
 
 fst:
 	@$(RM) a.out
-	$(CC) -Werror -std=c11 fast.c -lncurses
+	$(CC) -Werror -std=c11 fast.c -lncurses -lm
 	./a.out

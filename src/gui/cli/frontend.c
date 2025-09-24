@@ -1,7 +1,7 @@
 #include "frontend.h"
 
 
-void win_init(int time) {
+void winInit(int time) {
     initscr();
     noecho();
     curs_set(0);
@@ -21,7 +21,7 @@ void win_init(int time) {
     }
 }
 
-void win_close() {
+void winClose() {
     reset_shell_mode();
     echo();
     nocbreak();
@@ -29,27 +29,25 @@ void win_close() {
     endwin();
 }
 
-void print_board(void) {
+void printBoard() {
     // игровое поле
-    print_rectangle(0, BOARD_H + 1, 0, BOARD_W + 1);
+    printRectangle(0, BOARD_H + 1, 0, BOARD_W + 1);
     // поле статистики
-    print_rectangle(0, BOARD_H + 1, BOARD_W + 2, BOARD_W + INFO_W + 3);
+    printRectangle(0, BOARD_H + 1, BOARD_W + 2, BOARD_W + INFO_W + 3);
    
-    print_rectangle(1, 3, BOARD_W + 3, BOARD_W + INFO_W + 2);
+    printRectangle(1, 3, BOARD_W + 3, BOARD_W + INFO_W + 2);
     MVPRINTW(2, BOARD_W + 4, "BEST");
 
-    print_rectangle(4, 6, BOARD_W + 3, BOARD_W + INFO_W + 2);
+    printRectangle(4, 6, BOARD_W + 3, BOARD_W + INFO_W + 2);
     MVPRINTW(5, BOARD_W + 4, "SCORE");
 
-    print_rectangle(7, 9, BOARD_W + 3, BOARD_W + INFO_W + 2);
+    printRectangle(7, 9, BOARD_W + 3, BOARD_W + INFO_W + 2);
     MVPRINTW(8, BOARD_W + 4, "LEVEL");
 
     MVPRINTW(10, BOARD_W + 7, "NEXT");
-
-    //MVPRINTW(BOARD_H / 2, (BOARD_W - PRESS_ENTER_MESSAGE_LEN) / 2 + 1, PRESS_ENTER_MESSAGE);
 }
 
-void print_rectangle(int top_y, int bottom_y, int left_x, int right_x)
+void printRectangle(int top_y, int bottom_y, int left_x, int right_x)
 {
     MVADDCH(top_y, left_x, ACS_ULCORNER);
 
@@ -72,7 +70,7 @@ void print_rectangle(int top_y, int bottom_y, int left_x, int right_x)
     MVADDCH(bottom_y, i, ACS_LRCORNER);
 }
 
-void print_next(GameInfo_t *GameInfo) {
+void printNext(GameInfo_t *GameInfo) {
     // очистка предыдущей фигуры
     for (int i = 0; i < NEXT_SIZE; i++)
         for (int j = 0; j < NEXT_SIZE; j++) {
@@ -102,7 +100,7 @@ void print_next(GameInfo_t *GameInfo) {
     if (color_on) attroff(COLOR_PAIR(color));
 }
 
-void print_stats(GameInfo_t *GameInfo) {
+void printStats(GameInfo_t *GameInfo) {
     MVPRINTW(2, BOARD_W + 10, "    ");
     MVPRINTW(2, BOARD_W + 10, "%-d", GameInfo->high_score);
 
@@ -112,10 +110,10 @@ void print_stats(GameInfo_t *GameInfo) {
     MVPRINTW(8, BOARD_W + 10, "  ");
     MVPRINTW(8, BOARD_W + 10, "%-d", GameInfo->level);
 
-    print_next(GameInfo);
+    printNext(GameInfo);
 }
 
-void clear_field() {
+void clearField() {
     for (int i = 0; i < FIELD_H; i++)
         for (int j = 0; j < FIELD_W; j++) {
             MVADDCH(i+1, (j * 2 + 1), ' ');
@@ -123,7 +121,7 @@ void clear_field() {
         }
 }
 
-void print_field(GameInfo_t *GameInfo) {
+void printField(GameInfo_t *GameInfo) {
     bool color_on = has_colors();
     char ch_L = color_on ? ' ' : ' ';
     char ch_R = color_on ? ' ' : ' ';
@@ -136,7 +134,7 @@ void print_field(GameInfo_t *GameInfo) {
         }
 }
 
-void print_pause(GameInfo_t *GameInfo) {
+void printPause(GameInfo_t *GameInfo) {
     for (int i = FIELD_H / 2 - 4; i < FIELD_H / 2 + 1; i++)
         for (int j = 0; j < FIELD_W; j++) {
             MVADDCH(i+1, (j * 2 + 1), ' ');
@@ -165,7 +163,7 @@ void print_pause(GameInfo_t *GameInfo) {
 }
 
 
-bool process_key(UserAction_t *action, bool *hold) {
+bool processKey(UserAction_t *action, bool *hold) {
     static int prev_key = 0;
     int key = getch();
     bool res = true;

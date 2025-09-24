@@ -1,6 +1,6 @@
 #include "backend.h"
 
-long long get_time() {
+long long getTime() {
     struct timespec ts;
     timespec_get(&ts, TIME_UTC);
   return (long long)ts.tv_sec * 1000 + ts.tv_nsec / 1000000LL;
@@ -154,7 +154,7 @@ void spawnFigure() {
     } else {
         genNextFigure();
         setState(FSM_Moving);
-        TetrisGameInfo->time = get_time();
+        TetrisGameInfo->time = getTime();
         printlog("spawnFigure() set to FSM_Moving");
     }
 }
@@ -299,7 +299,7 @@ void gamePause() {
     TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
     if (TetrisGameInfo->pause == 1) {
         TetrisGameInfo->pause = 0;
-        TetrisGameInfo->time = get_time();
+        TetrisGameInfo->time = getTime();
         setState(FSM_Moving);
         printlog("Play game                ");
         timeout(GETCH_WAIT);

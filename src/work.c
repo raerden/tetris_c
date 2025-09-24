@@ -55,10 +55,10 @@ GameInfo_t updateCurrentState() {
     }
 
     TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
-    long long time = get_time();
+    long long time = getTime();
     if (currentState(FSM_Moving) &&
         time - TetrisGameInfo->time > TetrisGameInfo->speed) {
-        TetrisGameInfo->time = get_time();
+        TetrisGameInfo->time = getTime();
         setState(FSM_Shifting);
         printlog("updateCurrentState() set FSM_Shifting by timer");
     }
@@ -66,8 +66,8 @@ GameInfo_t updateCurrentState() {
     tetrisToGameInfo(&GameInfo);
 
     //счетчик вызова updateCurrentState для визуализации тиков
-    static int scr = 0;
-    GameInfo.score = scr++;
+    // static int scr = 0;
+    // GameInfo.score = scr++;
 
     return GameInfo;
 }
@@ -75,12 +75,12 @@ GameInfo_t updateCurrentState() {
 // функция brick_game.c
 void renderGame(GameInfo_t *GameInfo) {
     if (GameInfo->pause == 0) {
-        print_stats(GameInfo);
-        print_next(GameInfo);
-        print_field(GameInfo);
+        printStats(GameInfo);
+        printNext(GameInfo);
+        printField(GameInfo);
     }
     else 
-        print_pause(GameInfo);
+        printPause(GameInfo);
 }
 
 
@@ -148,21 +148,22 @@ void userInput(UserAction_t action, bool hold) {
 void userAction() {
     UserAction_t action = 0;
     bool hold = false;
-    if (process_key(&action, &hold)) // Функция frontend.c
+    if (processKey(&action, &hold)) // Функция frontend.c
         userInput(action, hold);
 }
 
 void deleteLines() {
-    //
+    TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
+    
 }
 
 int main() {
     
-    win_init(-1);
+    winInit(-1);
 
-    srand(get_time()); //сброс rand() текущим временем
+    srand(getTime()); //сброс rand() текущим временем
 
-    print_board();
+    printBoard();
 
     GameInfo_t gameInfo = {0};
     
@@ -192,7 +193,7 @@ int main() {
     }
 
     terminate(&gameInfo);
-    win_close();
+    winClose();
 
     return 0;
 }

@@ -6,15 +6,15 @@
 #include "../../brick_game.h"
 
 
-void win_init(int time);
-void win_close();
-void print_rectangle(int top_y, int bottom_y, int left_x, int right_x);
-void print_board(void);
-void clear_field();
-void print_field(GameInfo_t *GameInfo);
-void print_stats(GameInfo_t *GameInfo);
-void print_next(GameInfo_t *GameInfo);
-void print_pause(GameInfo_t *GameInfo);
-bool process_key(UserAction_t *action, bool *hold);
+void winInit(int time);
+void winClose();
+void printRectangle(int top_y, int bottom_y, int left_x, int right_x);
+void printBoard();
+void clearField();
+void printField(GameInfo_t *GameInfo);
+void printStats(GameInfo_t *GameInfo);
+void printNext(GameInfo_t *GameInfo);
+void printPause(GameInfo_t *GameInfo);
+bool processKey(UserAction_t *action, bool *hold);
 
 #endif

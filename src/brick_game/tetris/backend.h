@@ -44,8 +44,8 @@ typedef struct {
   long long time;
 } TetrisGameInfo_t;
 
-long long get_time();
-void delay_ms(int milliseconds);
+long long getTime();
+void delayMs(int milliseconds);
 int **createMatrix(int row, int col);
 void freeMatrix(int **matrix, int size);
 void copyMatrix(int **dst, int **scr, int row, int col);

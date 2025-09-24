@@ -21,13 +21,11 @@ typedef enum {
     FSM_Shifting, //Сдвиг фигуры вниз по таймеру
     FSM_Attaching,
     FSM_GamePause,
-    FSM_GameWin,
-    FSM_GameOver,
     FSM_Terminate,
 } FSM_State_t;
 
 typedef struct {
-  FSM_State_t status;
+  FSM_State_t state;
   int **field;
   int **next;
   int next_w;
@@ -53,10 +51,21 @@ void freeMatrix(int **matrix, int size);
 void copyMatrix(int **dst, int **scr, int row, int col);
 void clearMatrix(int **matrix, int row, int col);
 TetrisGameInfo_t *getTetrisGameInfo();
+void setState(FSM_State_t state);
+bool currentState(FSM_State_t state);
 void terminate(GameInfo_t *gameInfo);
 void genNextFigure();
 void spawnFigure();
 void copyFigureToField();
 void tetrisToGameInfo(GameInfo_t *GameInfo);
+bool isCollided(int **figure, int width, int heigth, int pos_x, int pos_y);
+void swapInt(int *a, int *b);
+void rotateFigure();
+void moveLeft();
+void moveRigth();
+void dropDown();
+void attachFigure();
+void deleteLines();
+void gamePause();
 
 #endif

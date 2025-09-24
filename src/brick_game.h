@@ -30,6 +30,8 @@ typedef struct {
 void userInput(UserAction_t action, bool hold);
 GameInfo_t updateCurrentState();
 
+void renderGame(GameInfo_t *GameInfo);
+
 // временно для отладки
 void printlog(const char *fmt, ...);
 void printfsm();

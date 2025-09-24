@@ -46,7 +46,7 @@ void print_board(void) {
 
     MVPRINTW(10, BOARD_W + 7, "NEXT");
 
-    MVPRINTW(BOARD_H / 2, (BOARD_W - PRESS_ENTER_MESSAGE_LEN) / 2 + 1, PRESS_ENTER_MESSAGE);
+    //MVPRINTW(BOARD_H / 2, (BOARD_W - PRESS_ENTER_MESSAGE_LEN) / 2 + 1, PRESS_ENTER_MESSAGE);
 }
 
 void print_rectangle(int top_y, int bottom_y, int left_x, int right_x)
@@ -154,7 +154,9 @@ void print_pause(GameInfo_t *GameInfo) {
         MVPRINTW(BOARD_H / 2 - 4, (BOARD_W - LOSE_MESSAGE_LEN) / 2 + 1, LOSE_MESSAGE);
         MVPRINTW(BOARD_H / 2 - 2, (BOARD_W - SMILE_WIDTH) / 2 + 1, SMILE_SAD);
     }
-    if (GameInfo->pause == 2 || GameInfo->pause == 3) {
+
+
+    if (GameInfo->pause == 2 || GameInfo->pause == 3 || GameInfo->pause == 4) {
         MVPRINTW(BOARD_H / 2, (BOARD_W - PRESS_ENTER_MESSAGE_LEN) / 2 + 1, PRESS_ENTER_MESSAGE);
     }
     if (GameInfo->pause > 0) {
@@ -210,14 +212,4 @@ bool process_key(UserAction_t *action, bool *hold) {
     }
 
     return res;
-}
-
-
-void renderGame(GameInfo_t *GameInfo) {
-    print_stats(GameInfo);
-    print_next(GameInfo);
-    if (GameInfo->pause == 0)
-        print_field(GameInfo);
-    else 
-        print_pause(GameInfo);
 }

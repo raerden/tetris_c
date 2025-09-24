@@ -16,6 +16,5 @@ void print_stats(GameInfo_t *GameInfo);
 void print_next(GameInfo_t *GameInfo);
 void print_pause(GameInfo_t *GameInfo);
 bool process_key(UserAction_t *action, bool *hold);
-void renderGame(GameInfo_t *GameInfo);
 
 #endif

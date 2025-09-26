@@ -1,13 +1,13 @@
 #include "frontend.h"
 
 
-void winInit(int time) {
+void winInit() {
     initscr();
     noecho();
     curs_set(0);
     keypad(stdscr, TRUE);
-    timeout(time);
-    set_escdelay(30);
+    timeout(GETCH_TIMEOUT);
+    set_escdelay(ESC_TIMEOUT);
 
     if (has_colors()) {
         start_color();

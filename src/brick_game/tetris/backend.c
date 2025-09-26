@@ -30,16 +30,6 @@ GameInfo_t updateCurrentState() {
         GameInfo.field = createMatrix(FIELD_H, FIELD_W);
     }
 
-    //отслеживание shift по таймеру
-    TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
-    long long time = getTime();
-    if (currentState(FSM_Moving) &&
-        time - TetrisGameInfo->time > TetrisGameInfo->speed) {
-        TetrisGameInfo->time = time;
-        setState(FSM_Shifting);
-        printlog("updateCurrentState() set FSM_Shifting by timer");
-    }
-
     tetrisToGameInfo(&GameInfo);
     return GameInfo;
 }
@@ -459,13 +449,11 @@ void gamePause() {
         TetrisGameInfo->time = getTime();
         setState(FSM_Moving);
         printlog("Play game                ");
-        timeout(GETCH_TIMEOUT);
     }
     else if (TetrisGameInfo->pause == 0) {
         TetrisGameInfo->pause = 1;
         setState(FSM_GamePause);
         printlog("Pause game                 ");
-        timeout(-1);
     }
 }
 

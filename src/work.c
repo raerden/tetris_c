@@ -49,6 +49,33 @@ void gameLoop() {
 }
 
 void stepGame() {
+    //отслеживание shift по таймеру
+    TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
+    long long time = getTime();
+    if (currentState(FSM_Moving) &&
+        time - TetrisGameInfo->time > TetrisGameInfo->speed) {
+        TetrisGameInfo->time = time;
+        setState(FSM_Shifting);
+        printlog("updateCurrentState() set FSM_Shifting by timer");
+    }
+/*
+ гпт предлагет перенести логиу смещения фигуры по таймер сюда
+ убрать её из updateCurrentState
+     if (fastDropActive) {
+        // сдвигаем вниз на каждом кадре
+        moveFigureDown();
+        if (figureTouchedBottom()) {
+            fastDropActive = false;
+            attachFigure();
+        }
+    } else {
+        // обычное падение с таймером/скоростью
+        if (timerExpired()) {
+            moveFigureDown();
+        }
+    }
+
+*/
     if (currentState(FSM_Spawn)) {
         spawnFigure();
     } else if (currentState(FSM_Shifting)) {
@@ -57,9 +84,21 @@ void stepGame() {
         attachFigure();
     }
 }
+/*
+переписать функцию movedown()
+она будет вызываться если установлен флаг
+bool fastDrop;
+проверяет коллицизию и смещает фигуру на один вниз
 
+updateCurrentState
+при включенном флаге fastDrop дергает movedown()
+тогда получится быстрое падение фигурки с отрисовкной накаждом кадре без вызова из бека
+
+функция spawn устанавливает fastDrop = 0;
+
+*/
 int main() {
-    winInit(GETCH_TIMEOUT);
+    winInit();
     printBoard();
 
     GameInfo_t gameInfo = {0};

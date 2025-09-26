@@ -6,7 +6,7 @@
 #include "../../brick_game.h"
 
 
-void winInit(int time);
+void winInit();
 void winClose();
 void printRectangle(int top_y, int bottom_y, int left_x, int right_x);
 void printBoard();

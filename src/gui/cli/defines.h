@@ -28,6 +28,8 @@
 #define COLR_BLUE   20
 #define COLR_PURPLE 90
 
+#define GETCH_TIMEOUT 15
+#define ESC_TIMEOUT 30
 #define PRESS_ENTER_MESSAGE "Press ENTER to start"
 #define PRESS_ENTER_MESSAGE_LEN 20
 #define PRESS_P_MESSAGE "Press P to continue"

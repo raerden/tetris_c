@@ -11,7 +11,6 @@
 #define FIELD_H     20
 #define FIGURE_FIELD_SIZE 4
 #define INITIAL_SPEED 1250
-#define GETCH_TIMEOUT 15
 #define LEVEL_TRESHOLD 600
 #define MAX_LEVEL 10
 #define SECRET_CHECKSUM 0xA512
@@ -45,6 +44,7 @@ typedef struct {
   int pos_x; // левый верхний угол матрицы с фигурой
   int pos_y;
   long long time;
+  bool fastDrop;
 } TetrisGameInfo_t;
 
 typedef struct {

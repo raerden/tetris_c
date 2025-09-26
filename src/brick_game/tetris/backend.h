@@ -52,12 +52,23 @@ typedef struct {
     int checksum;
 } score_t;
 
+TetrisGameInfo_t *getTetrisGameInfo();
+
+void startGame();
+
+void gameWin();
+void gameOver();
+int calcSpeed(int level);
+void shiftFigure();
+bool isFullRow(int **field, int row);
+void removeRow(int **field, int row);
+int calcScore(int full_rows);
+void deleteLines();
 long long getTime();
 int **createMatrix(int row, int col);
 void freeMatrix(int **matrix, int size);
 void copyMatrix(int **dst, int **scr, int row, int col);
 void clearMatrix(int **matrix, int row, int col);
-TetrisGameInfo_t *getTetrisGameInfo();
 void setState(FSM_State_t state);
 bool currentState(FSM_State_t state);
 void terminateGame(GameInfo_t *gameInfo);

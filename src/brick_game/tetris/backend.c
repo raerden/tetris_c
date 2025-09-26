@@ -1,5 +1,182 @@
 #include "backend.h"
 
+
+// Каждая библиотека с игрой должна иметь функцию, принимающую на вход пользовательский ввод.
+// дергается из фронта если нажали кнопку.
+void userInput(UserAction_t action, bool hold) {
+    if (action == Terminate) {
+        setState(FSM_Terminate);
+    } else if (action == Start && currentState(FSM_Start)) {
+        startGame();
+    } else if (action == Pause && !currentState(FSM_Start)) {
+        gamePause();
+    } else if (currentState(FSM_Moving)) {
+        switch (action)
+        {
+            case Action: rotateFigure(); break;
+            case Left: moveLeft(); break;
+            case Right: moveRigth(); break;
+            case Up: gameWin(); break;
+            // case Up: spawnFigure(); break;
+            case Down: dropDown(); break;
+        }
+    }
+}
+
+//вызывается в цикле while пока идет игра
+GameInfo_t updateCurrentState() {
+    static GameInfo_t GameInfo = {0};
+    if (GameInfo.field == NULL) {
+        GameInfo.field = createMatrix(FIELD_H, FIELD_W);
+    }
+
+    //отслеживание shift по таймеру
+    TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
+    long long time = getTime();
+    if (currentState(FSM_Moving) &&
+        time - TetrisGameInfo->time > TetrisGameInfo->speed) {
+        TetrisGameInfo->time = time;
+        setState(FSM_Shifting);
+        printlog("updateCurrentState() set FSM_Shifting by timer");
+    }
+
+    tetrisToGameInfo(&GameInfo);
+    return GameInfo;
+}
+
+//функция синглтон. Хранит внутри себя static структуру с информацией об игре
+TetrisGameInfo_t *getTetrisGameInfo() {
+    static TetrisGameInfo_t TetrisGameInfo = {0};
+    if (TetrisGameInfo.field == NULL) {
+        //первый вызов функции. Инициализация
+        srand(getTime()); //сброс rand() текущим временем
+        TetrisGameInfo.field = createMatrix(FIELD_H, FIELD_W);
+        TetrisGameInfo.next = createMatrix(FIGURE_FIELD_SIZE, FIGURE_FIELD_SIZE);
+        TetrisGameInfo.figure = createMatrix(FIGURE_FIELD_SIZE, FIGURE_FIELD_SIZE);
+        TetrisGameInfo.figure_tmp = createMatrix(FIGURE_FIELD_SIZE, FIGURE_FIELD_SIZE);
+        TetrisGameInfo.state = FSM_Start;
+        TetrisGameInfo.pause = 4;// Стартовое приглашение к игре.
+    }
+    return &TetrisGameInfo;
+}
+
+void setState(FSM_State_t state) {
+    TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
+    if (state != TetrisGameInfo->state)
+        TetrisGameInfo->state = state;
+}
+
+bool currentState(FSM_State_t state) {
+    TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
+    return TetrisGameInfo->state == state;
+}
+
+void startGame() {
+    TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
+
+    TetrisGameInfo->score = 0;
+    TetrisGameInfo->high_score = loadScore();
+    TetrisGameInfo->level = 1;
+    TetrisGameInfo->speed = calcSpeed(TetrisGameInfo->level);
+    TetrisGameInfo->pause = 0;
+
+    clearMatrix(TetrisGameInfo->field, FIELD_H, FIELD_W);
+    genNextFigure();
+    spawnFigure();
+    setState(FSM_Moving);
+    printlog("startGame() set to FSM_Moving             ");
+}
+
+void gameWin() {
+    TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
+    TetrisGameInfo->pause = 2;
+    setState(FSM_Start);
+}
+
+void gameOver() {
+    TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
+    TetrisGameInfo->pause = 3;
+    setState(FSM_Start);
+}
+
+int calcSpeed(int level) {
+    //вычисление скорости по формуле (1250 * (0,8 ^ level))
+    double degree = 1;
+    for (int i = 0; i < level; i++)
+        degree *= 0.8;
+    return (int)INITIAL_SPEED * degree;
+}
+
+void shiftFigure() {
+    TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
+    int max_y = FIELD_H - TetrisGameInfo->figure_h;
+    if (TetrisGameInfo->pos_y == max_y || isCollided(TetrisGameInfo->figure, \
+        TetrisGameInfo->figure_h, TetrisGameInfo->figure_w, \
+        TetrisGameInfo->pos_y + 1, TetrisGameInfo->pos_x)) {
+            setState(FSM_Attaching);
+        } else {
+            TetrisGameInfo->pos_y += 1;
+            setState(FSM_Moving);
+        }
+}
+
+
+
+bool isFullRow(int **field, int row) {
+    bool full = true;
+    for (int col = 0; full && col < FIELD_W; col++)
+        full = field[row][col] != 0;
+    return full;
+}
+
+void removeRow(int **field, int row) {
+    int *tmp = field[row];
+    for (int r = row; r > 0; r--)
+        field[r] = field[r - 1];
+    field[0] = tmp;
+    for (int col = 0; col < FIELD_W; col++)
+        field[0][col] = 0;
+}
+
+int calcScore(int full_rows) {
+    int score = 0;
+    switch (full_rows)
+    {
+        case 1: score = 100; break;
+        case 2: score = 300; break;
+        case 3: score = 700; break;
+        case 4: score = 1500; break;
+    }
+    return score;
+}
+
+void deleteLines() {
+    TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
+
+    int full_rows = 0;
+    for (int row = FIELD_H - 1; row > 0; row--)
+        while(isFullRow(TetrisGameInfo->field, row)) {
+            removeRow(TetrisGameInfo->field, row);
+            full_rows++;
+        }
+
+    if (full_rows > 0) {
+        TetrisGameInfo->score += calcScore(full_rows);
+
+        if (TetrisGameInfo->score > TetrisGameInfo->high_score)
+            TetrisGameInfo->high_score = TetrisGameInfo->score;
+        
+        int level = TetrisGameInfo->score / LEVEL_TRESHOLD + 1;
+        if (level > 10) {
+            gameWin();
+        } else if (level > TetrisGameInfo->level) {
+            TetrisGameInfo->level = level;
+            TetrisGameInfo->speed = calcSpeed(level);
+        }
+    }
+}
+
+
 long long getTime() {
     struct timespec ts;
     timespec_get(&ts, TIME_UTC);
@@ -37,28 +214,6 @@ void clearMatrix(int **matrix, int row, int col) {
     for (int i = 0; i < row; i++)
         for (int j = 0; j < col; j++)
             matrix[i][j] = 0;
-}
-
-TetrisGameInfo_t *getTetrisGameInfo() {
-    static TetrisGameInfo_t TetrisGameInfo = {0};
-    if (TetrisGameInfo.field == NULL) {
-        TetrisGameInfo.field = createMatrix(FIELD_H, FIELD_W);
-        TetrisGameInfo.next = createMatrix(FIGURE_FIELD_SIZE, FIGURE_FIELD_SIZE);
-        TetrisGameInfo.figure = createMatrix(FIGURE_FIELD_SIZE, FIGURE_FIELD_SIZE);
-        TetrisGameInfo.figure_tmp = createMatrix(FIGURE_FIELD_SIZE, FIGURE_FIELD_SIZE);
-    }
-    return &TetrisGameInfo;
-}
-
-void setState(FSM_State_t state) {
-    TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
-    if (state != TetrisGameInfo->state)
-        TetrisGameInfo->state = state;
-}
-
-bool currentState(FSM_State_t state) {
-    TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
-    return TetrisGameInfo->state == state;
 }
 
 void terminateGame(GameInfo_t *gameInfo) {
@@ -275,9 +430,9 @@ void dropDown() {
             break;
         } else {
             TetrisGameInfo->pos_y = y;
-            getch();
-            gameInfo = updateCurrentState();
-            renderGame(&gameInfo);
+            // getch();
+            // gameInfo = updateCurrentState();
+            // renderGame(&gameInfo);
         }
     }
     setState(FSM_Attaching);
@@ -322,7 +477,7 @@ int makeChecksum(int num) {
 void saveScore(int score) {
     score_t data = {0};
     data.score = score;
-    data.checksum = make_checksum(score);
+    data.checksum = makeChecksum(score);
     FILE *f = fopen(BEST_SCORE_FILE, "wb");
     if (f) {
         fwrite(&data, sizeof(score_t), 1, f);
@@ -337,7 +492,7 @@ int loadScore() {
         score_t data = {0};
         size_t n = fread(&data, sizeof(score_t), 1, f);
         fclose(f);
-        if (data.checksum == make_checksum(data.score))
+        if (data.checksum == makeChecksum(data.score))
             res = data.score;
     }
     return res;

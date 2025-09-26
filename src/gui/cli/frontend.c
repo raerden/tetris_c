@@ -123,9 +123,9 @@ void clearField() {
 
 void printField(GameInfo_t *GameInfo) {
     bool color_on = has_colors();
-    char ch_L = color_on ? ' ' : ' ';
-    char ch_R = color_on ? ' ' : ' ';
-    for (int i = 0; i < BOARD_H; i++)
+    char ch_L = color_on ? ' ' : '[';
+    char ch_R = color_on ? ' ' : ']';
+    for (int i = 0; i < FIELD_H; i++)
         for (int j = 0; j < FIELD_W; j++) {
             if (color_on) attron(COLOR_PAIR(GameInfo->field[i][j]));
             MVADDCH(i+1, (j * 2 + 1), ch_L);

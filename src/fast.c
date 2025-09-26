@@ -1,28 +1,46 @@
 #include <stdio.h>
-#include <math.h>
 
-double my_pow(double x, int y) {
-    double res = 1;
-    for (int i = 0; i < y; i++)
-        res *= x;
+#define SECRET_CHECKSUM 0xA512
+
+typedef struct {
+    int score;
+    int checksum;
+} score_t;
+
+int make_checksum(int num) {
+    const int secret = SECRET_CHECKSUM;
+    return (num ^ secret) + (num << 3);
+}
+
+void save_score(int score) {
+    score_t data = {0};
+    data.score = score;
+    data.checksum = make_checksum(score);
+    FILE *f = fopen("score.dt", "wb");
+    if (f) {
+        fwrite(&data, sizeof(score_t), 1, f);
+        fclose(f);
+    }
+}
+
+int load_score() {
+    int res = 0;
+    FILE *f = fopen("score.dt", "rb");
+    if (f) {
+        score_t data = {0};
+        size_t n = fread(&data, sizeof(score_t), 1, f);
+        fclose(f);
+        if (data.checksum == make_checksum(data.score))
+            res = data.score;
+    }
     return res;
 }
 
-int calcSpeed(int level) {
-    double res = 1;
-    for (int i = 0; i < level; i++)
-        res *= 0.8;
-    return (int)1250 * res;
-}
-
 int main() {
+    int score = 12345;
+    save_score(score);
     
-    // for (int i=1; i < 11; i++) 
-    //     printf("%d - mypow=%d - calcspeed=%d\n", (int)(1250 * pow(0.8, i)), (int)(1250 * my_pow(0.8, i)), calcSpeed(i));
-    
-    printf("%d\n", 600 / 600);//1
-    printf("%d\n", 700 / 600);//1 надо 2
-    printf("%d\n", 1300 / 600);//2
-    printf("%d\n", 2000 / 600);//3
+    int lscore = load_score();
+    printf("score=%d, load_score=%d\n", score, lscore);
     return 0;
 }

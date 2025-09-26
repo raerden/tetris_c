@@ -115,19 +115,11 @@ int calcSpeed(int level) {
     return (int)INITIAL_SPEED * degree;
 }
 
-void saveBestScore() {
-
-}
-
-int loadBestScore() {
-    return 0;
-}
-
 void startGame() {
     TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
 
     TetrisGameInfo->score = 0;
-    TetrisGameInfo->high_score = loadBestScore();
+    TetrisGameInfo->high_score = loadScore();
     TetrisGameInfo->level = 1;
     TetrisGameInfo->speed = calcSpeed(TetrisGameInfo->level);
     TetrisGameInfo->pause = 0;
@@ -269,7 +261,7 @@ int main() {
         renderGame(&gameInfo);
     }
 
-    terminate(&gameInfo);
+    terminateGame(&gameInfo);
     winClose();
 
     return 0;

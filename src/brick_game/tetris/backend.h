@@ -14,6 +14,8 @@
 #define GETCH_TIMEOUT 15
 #define LEVEL_TRESHOLD 600
 #define MAX_LEVEL 10
+#define SECRET_CHECKSUM 0xA512
+#define BEST_SCORE_FILE "score.dt"
 
 typedef enum {
     FSM_Start,
@@ -45,8 +47,12 @@ typedef struct {
   long long time;
 } TetrisGameInfo_t;
 
+typedef struct {
+    int score;
+    int checksum;
+} score_t;
+
 long long getTime();
-void delayMs(int milliseconds);
 int **createMatrix(int row, int col);
 void freeMatrix(int **matrix, int size);
 void copyMatrix(int **dst, int **scr, int row, int col);
@@ -54,12 +60,12 @@ void clearMatrix(int **matrix, int row, int col);
 TetrisGameInfo_t *getTetrisGameInfo();
 void setState(FSM_State_t state);
 bool currentState(FSM_State_t state);
-void terminate(GameInfo_t *gameInfo);
+void terminateGame(GameInfo_t *gameInfo);
 void genNextFigure();
 void spawnFigure();
 void copyFigureToField();
 void tetrisToGameInfo(GameInfo_t *GameInfo);
-bool isCollided(int **figure, int width, int heigth, int pos_x, int pos_y);
+bool isCollided(int **figure, int heigth, int width, int pos_y, int pos_x);
 void swapInt(int *a, int *b);
 void rotateFigure();
 void moveLeft();
@@ -68,5 +74,8 @@ void dropDown();
 void attachFigure();
 void deleteLines();
 void gamePause();
+int makeChecksum(int num);
+void saveScore(int score);
+int loadScore();
 
 #endif

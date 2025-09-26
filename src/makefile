@@ -24,6 +24,9 @@ out/%.o: src/%.c
 clean:
 	$(RM) out/*.o frogger frogger_fsmtable
 
+cpptest:
+	cppcheck --enable=all --std=c11 --suppress=missingIncludeSystem --suppress=missingInclude --suppress=checkersReport .
+
 runbuild:
 	@$(RM) a.out
 	$(CC) -Werror -std=c11 gui/cli/frontend.c brick_game/tetris/backend.c work.c -lncurses

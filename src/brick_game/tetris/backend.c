@@ -61,9 +61,9 @@ bool currentState(FSM_State_t state) {
     return TetrisGameInfo->state == state;
 }
 
-void terminate(GameInfo_t *gameInfo) {
+void terminateGame(GameInfo_t *gameInfo) {
     TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
-
+    saveScore(TetrisGameInfo->high_score);
     freeMatrix(gameInfo->field, FIELD_H);
     freeMatrix(TetrisGameInfo->field, FIELD_H);
     freeMatrix(TetrisGameInfo->next, FIGURE_FIELD_SIZE);
@@ -76,9 +76,6 @@ void genNextFigure() {
     clearMatrix(TetrisGameInfo->next, FIGURE_FIELD_SIZE, FIGURE_FIELD_SIZE);
     //  Номер фигуры также является её цветом.
     int figure = 1 + rand() % 7;
-    #ifdef DEBUG
-        figure = 1;
-    #endif
     switch (figure)
     {
     case 1: // Палка.
@@ -315,4 +312,33 @@ void gamePause() {
         printlog("Pause game                 ");
         timeout(-1);
     }
+}
+
+int makeChecksum(int num) {
+    const int secret = SECRET_CHECKSUM;
+    return (num ^ secret) + (num << 3);
+}
+
+void saveScore(int score) {
+    score_t data = {0};
+    data.score = score;
+    data.checksum = make_checksum(score);
+    FILE *f = fopen(BEST_SCORE_FILE, "wb");
+    if (f) {
+        fwrite(&data, sizeof(score_t), 1, f);
+        fclose(f);
+    }
+}
+
+int loadScore() {
+    int res = 0;
+    FILE *f = fopen(BEST_SCORE_FILE, "rb");
+    if (f) {
+        score_t data = {0};
+        size_t n = fread(&data, sizeof(score_t), 1, f);
+        fclose(f);
+        if (data.checksum == make_checksum(data.score))
+            res = data.score;
+    }
+    return res;
 }

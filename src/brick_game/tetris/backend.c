@@ -16,9 +16,11 @@ void userInput(UserAction_t action, bool hold) {
             case Action: rotateFigure(); break;
             case Left: moveLeft(); break;
             case Right: moveRigth(); break;
-            case Up: gameWin(); break;
-            // case Up: spawnFigure(); break;
+            // case Up: gameWin(); break;
+            case Up: spawnFigure(); break;
             case Down: dropDown(); break;
+            // case Down: moveDown(); break;
+            // case Down: moveDown(); break;
         }
     }
 }
@@ -69,12 +71,13 @@ void startGame() {
     TetrisGameInfo->level = 1;
     TetrisGameInfo->speed = calcSpeed(TetrisGameInfo->level);
     TetrisGameInfo->pause = 0;
+    TetrisGameInfo->fastDrop = false;
 
     clearMatrix(TetrisGameInfo->field, FIELD_H, FIELD_W);
     genNextFigure();
     spawnFigure();
-    setState(FSM_Moving);
-    printlog("startGame() set to FSM_Moving             ");
+    // setState(FSM_Moving);
+    // printlog("startGame() set to FSM_Moving             ");
 }
 
 void gameWin() {
@@ -96,21 +99,6 @@ int calcSpeed(int level) {
         degree *= 0.8;
     return (int)INITIAL_SPEED * degree;
 }
-
-void shiftFigure() {
-    TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
-    int max_y = FIELD_H - TetrisGameInfo->figure_h;
-    if (TetrisGameInfo->pos_y == max_y || isCollided(TetrisGameInfo->figure, \
-        TetrisGameInfo->figure_h, TetrisGameInfo->figure_w, \
-        TetrisGameInfo->pos_y + 1, TetrisGameInfo->pos_x)) {
-            setState(FSM_Attaching);
-        } else {
-            TetrisGameInfo->pos_y += 1;
-            setState(FSM_Moving);
-        }
-}
-
-
 
 bool isFullRow(int **field, int row) {
     bool full = true;
@@ -291,6 +279,8 @@ void spawnFigure() {
     TetrisGameInfo->figure_h = TetrisGameInfo->next_h;
     TetrisGameInfo->pos_x = SPAWN_X - (TetrisGameInfo->figure_w == 4 ? 1 : 0);
     TetrisGameInfo->pos_y = SPAWN_Y;
+    TetrisGameInfo->fastDrop = false;
+
     // проверить коллизию из фигуры и перевести в FSM_Start
     if (isCollided(TetrisGameInfo->figure, TetrisGameInfo->figure_h, TetrisGameInfo->figure_w, TetrisGameInfo->pos_y, TetrisGameInfo->pos_x)) {
         TetrisGameInfo->pause = 3;// Поражение
@@ -339,10 +329,17 @@ bool isCollided(int **figure, int heigth, int width, int pos_y, int pos_x) {
     TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
     bool res = false;
 
+    //коллизии с краями игрового поля
+    if (pos_x < 0 || pos_x + width > FIELD_W || heigth + pos_y > FIELD_H) {
+        res = true;
+    }
+  
+    //коллизии с фигурами на поле
     for (int y = 0; res == false && y < heigth; y++)
         for (int x = 0; res == false && x < width; x++) 
-            if (figure[y][x] > 0 && TetrisGameInfo->field[y + pos_y][x + pos_x] > 0)
+            if (figure[y][x] > 0 && TetrisGameInfo->field[y + pos_y][x + pos_x] > 0) {
                 res = true;
+            }
     
     return res;
 }
@@ -365,15 +362,12 @@ void rotateFigure() {
         }
     }
 
-    //Коллизия с правой стенкой. Смещаем фигуру влево.
-    int new_x;
-    if (TetrisGameInfo->pos_x + TetrisGameInfo->figure_h > FIELD_W) 
+    //Коллизия при повороте с правой стенкой. Отскок фигуры влево.
+    int new_x = TetrisGameInfo->pos_x;
+    if (TetrisGameInfo->pos_x + TetrisGameInfo->figure_h > FIELD_W)
         new_x = TetrisGameInfo->pos_x - (TetrisGameInfo->pos_x + TetrisGameInfo->figure_h - FIELD_W);
-    else
-        new_x = TetrisGameInfo->pos_x;
 
-    if (!isCollided(TetrisGameInfo->figure_tmp, TetrisGameInfo->figure_w, TetrisGameInfo->figure_h, TetrisGameInfo->pos_y, new_x) && \
-            TetrisGameInfo->pos_y + TetrisGameInfo->figure_w <= FIELD_H) {
+    if (!isCollided(TetrisGameInfo->figure_tmp, TetrisGameInfo->figure_w, TetrisGameInfo->figure_h, TetrisGameInfo->pos_y, new_x)) {
         swapInt(&TetrisGameInfo->figure_w, &TetrisGameInfo->figure_h);
         copyMatrix(TetrisGameInfo->figure, TetrisGameInfo->figure_tmp, FIGURE_FIELD_SIZE, FIGURE_FIELD_SIZE);
         TetrisGameInfo->pos_x = new_x;
@@ -382,50 +376,59 @@ void rotateFigure() {
 
 void moveLeft() {
     TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
-    if (TetrisGameInfo->pos_x > 0 && \
-         !isCollided(TetrisGameInfo->figure, \
+    if (!isCollided(TetrisGameInfo->figure, \
          TetrisGameInfo->figure_h, TetrisGameInfo->figure_w, \
          TetrisGameInfo->pos_y, TetrisGameInfo->pos_x - 1)) {
         
         TetrisGameInfo->pos_x -= 1;
-        printlog("x=%d y=%d x+w=%d y+h=%d", TetrisGameInfo->pos_x, TetrisGameInfo->pos_y,
-        TetrisGameInfo->pos_x + TetrisGameInfo->figure_w,
-        TetrisGameInfo->pos_y + TetrisGameInfo->figure_h);
+        // printlog("x=%d y=%d x+w=%d y+h=%d", TetrisGameInfo->pos_x, TetrisGameInfo->pos_y,
+        // TetrisGameInfo->pos_x + TetrisGameInfo->figure_w,
+        // TetrisGameInfo->pos_y + TetrisGameInfo->figure_h);
     }
 }
 
 void moveRigth() {
     TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
-    if (TetrisGameInfo->pos_x + TetrisGameInfo->figure_w < FIELD_W && \
-         !isCollided(TetrisGameInfo->figure, \
+    if (!isCollided(TetrisGameInfo->figure, \
          TetrisGameInfo->figure_h, TetrisGameInfo->figure_w, \
          TetrisGameInfo->pos_y, TetrisGameInfo->pos_x + 1)) {
 
         TetrisGameInfo->pos_x += 1;
-        printlog("x=%d y=%d x+w=%d y+h=%d", TetrisGameInfo->pos_x, TetrisGameInfo->pos_y,
-        TetrisGameInfo->pos_x + TetrisGameInfo->figure_w,
-        TetrisGameInfo->pos_y + TetrisGameInfo->figure_h);
+        // printlog("x=%d y=%d x+w=%d y+h=%d", TetrisGameInfo->pos_x, TetrisGameInfo->pos_y,
+        // TetrisGameInfo->pos_x + TetrisGameInfo->figure_w,
+        // TetrisGameInfo->pos_y + TetrisGameInfo->figure_h);
+    }
+}
+
+void moveDown() {
+    TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
+
+    if (isCollided(TetrisGameInfo->figure, \
+        TetrisGameInfo->figure_h, TetrisGameInfo->figure_w, \
+        TetrisGameInfo->pos_y + 1, TetrisGameInfo->pos_x)) {
+        setState(FSM_Attaching);
+    } else {
+        TetrisGameInfo->pos_y++;
+        if (!TetrisGameInfo->fastDrop)
+            setState(FSM_Moving);
     }
 }
 
 void dropDown() {
     TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
-    GameInfo_t gameInfo;
+    TetrisGameInfo->fastDrop = true;
     
-    int max_y = FIELD_H - TetrisGameInfo->figure_h + 1;
-    for (int y = TetrisGameInfo->pos_y; y < max_y; y++) {
-        if (isCollided(TetrisGameInfo->figure, \
-            TetrisGameInfo->figure_h, TetrisGameInfo->figure_w, \
-            y, TetrisGameInfo->pos_x)) {
-            break;
-        } else {
-            TetrisGameInfo->pos_y = y;
-            // getch();
-            // gameInfo = updateCurrentState();
-            // renderGame(&gameInfo);
-        }
-    }
-    setState(FSM_Attaching);
+    // int max_y = FIELD_H - TetrisGameInfo->figure_h + 1;
+    // for (int y = TetrisGameInfo->pos_y; y < max_y; y++) {
+    //     if (isCollided(TetrisGameInfo->figure, \
+    //         TetrisGameInfo->figure_h, TetrisGameInfo->figure_w, \
+    //         y, TetrisGameInfo->pos_x)) {
+    //         break;
+    //     } else {
+    //         TetrisGameInfo->pos_y = y;
+    //     }
+    // }
+    // setState(FSM_Attaching);
 }
 
 void attachFigure() {

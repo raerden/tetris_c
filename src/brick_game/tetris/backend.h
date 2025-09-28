@@ -19,8 +19,7 @@
 typedef enum {
     FSM_Start,
     FSM_Spawn,
-    FSM_Moving,   //ожидание ввода, перемещение фигуры игроком
-    FSM_Shifting, //Сдвиг фигуры вниз по таймеру
+    FSM_Moving,   //перемещение фигуры игроком или таймером
     FSM_Attaching,
     FSM_GamePause,
     FSM_Terminate,
@@ -53,38 +52,51 @@ typedef struct {
 } score_t;
 
 TetrisGameInfo_t *getTetrisGameInfo();
+void tetrisToGameInfo(GameInfo_t *GameInfo);
 
 void startGame();
+void terminateGame(GameInfo_t *gameInfo);
 
+void gamePause();
 void gameWin();
 void gameOver();
+
 int calcSpeed(int level);
-void shiftFigure();
-bool isFullRow(int **field, int row);
-void removeRow(int **field, int row);
 int calcScore(int full_rows);
+
+bool isFullRow(int **field, int row);
+bool isCollided(int **figure, int heigth, int width, int pos_y, int pos_x);
+
+void removeRow(int **field, int row);
+
 void deleteLines();
 long long getTime();
+
 int **createMatrix(int row, int col);
 void freeMatrix(int **matrix, int size);
 void copyMatrix(int **dst, int **scr, int row, int col);
 void clearMatrix(int **matrix, int row, int col);
+
 void setState(FSM_State_t state);
 bool currentState(FSM_State_t state);
-void terminateGame(GameInfo_t *gameInfo);
+
+
 void genNextFigure();
 void spawnFigure();
 void copyFigureToField();
-void tetrisToGameInfo(GameInfo_t *GameInfo);
-bool isCollided(int **figure, int heigth, int width, int pos_y, int pos_x);
+
+
 void swapInt(int *a, int *b);
+
 void rotateFigure();
 void moveLeft();
 void moveRigth();
+void moveDown();
 void dropDown();
+
 void attachFigure();
 void deleteLines();
-void gamePause();
+
 int makeChecksum(int num);
 void saveScore(int score);
 int loadScore();

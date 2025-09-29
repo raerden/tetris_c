@@ -27,6 +27,11 @@ void printlog(const char *fmt, ...) {
     wrefresh(logwin);
 }
 
+/*
+doxygen - генерит доку из кода
+
+*/
+
 
 int main() {
     winInit();

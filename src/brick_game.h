@@ -3,6 +3,10 @@
 
 #include <stdbool.h>
 
+#define FIELD_W     10
+#define FIELD_H     20
+#define NEXT_SIZE   4
+
 typedef enum {
   Start,
   Pause,

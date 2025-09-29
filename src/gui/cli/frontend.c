@@ -1,6 +1,5 @@
 #include "frontend.h"
 
-
 void winInit() {
     initscr();
     noecho();
@@ -228,19 +227,37 @@ bool processKey(UserAction_t *action, bool *hold) {
     return res;
 }
 
-void userAction() {
+UserAction_t userAction() {
     UserAction_t action = 0;
     bool hold = false;
     if (processKey(&action, &hold))
         userInput(action, hold);
+    return action;
 }
 
 void renderGame(GameInfo_t *GameInfo) {
-    if (GameInfo->pause == 0) {
-        printStats(GameInfo);
-        printNext(GameInfo);
-        printField(GameInfo);
+    if (GameInfo->field != NULL) {
+        if (GameInfo->pause == 0) {
+            printStats(GameInfo);
+            printNext(GameInfo);
+            printField(GameInfo);
+        }
+        else 
+            printPause(GameInfo);
     }
-    else 
-        printPause(GameInfo);
+}
+
+int main() {
+    winInit();
+    
+    GameInfo_t gameInfo = {0};
+
+    while(userAction() != Terminate) {
+        gameInfo = updateCurrentState();
+        renderGame(&gameInfo);
+    }
+
+    winClose();
+
+    return 0;
 }

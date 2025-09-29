@@ -20,6 +20,6 @@ void renderGame(GameInfo_t *GameInfo);
 
 static long long getTime();
 bool processKey(UserAction_t *action, bool *hold);
-void userAction();
+UserAction_t userAction();
 
 #endif

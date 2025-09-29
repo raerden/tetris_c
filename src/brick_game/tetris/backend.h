@@ -6,8 +6,6 @@
 #include <stdio.h>
 #include "../../brick_game.h"
 
-#define FIELD_W     10
-#define FIELD_H     20
 #define SPAWN_X 4
 #define SPAWN_Y 0
 #define FIGURE_FIELD_SIZE 4
@@ -54,7 +52,6 @@ typedef struct {
 
 TetrisGameInfo_t *getTetrisGameInfo();
 void tetrisToGameInfo(GameInfo_t *GameInfo);
-void stepGame();
 void startGame();
 void terminateGame(GameInfo_t *gameInfo);
 
@@ -70,7 +67,6 @@ int calcScore(int full_rows);
 
 bool isFullRow(int **field, int row);
 bool isCollided(int **figure, int heigth, int width, int pos_y, int pos_x);
-bool isGameRunning();
 bool isTimerExpired();
 
 void removeRow(int **field, int row);
@@ -83,7 +79,6 @@ void clearMatrix(int **matrix, int row, int col);
 
 void genNextFigure();
 void spawnFigure();
-void copyFigureToField();
 
 void swapInt(int *a, int *b);
 static long long getTime();

@@ -6,9 +6,7 @@
 #define MVPRINTW(y, x, ...) mvprintw(BOARDS_BEGIN + (y), BOARDS_BEGIN + (x), __VA_ARGS__)
 #define MVADDCH(y, x, c) mvaddch(BOARDS_BEGIN + (y), BOARDS_BEGIN + (x), c)
 
-#define FIELD_W     10
-#define FIELD_H     20
-#define NEXT_SIZE   4
+
 #define BOARD_H     20
 #define BOARD_W     20
 #define INFO_W      12

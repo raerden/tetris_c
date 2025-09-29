@@ -19,6 +19,7 @@ void winInit() {
         init_pair(6, COLOR_BLACK, COLR_BLUE);   // T         синяя
         init_pair(7, COLOR_BLACK, COLR_PURPLE); // z-левая   пурпурная
     }
+    printBoard();
 }
 
 void winClose() {
@@ -162,11 +163,18 @@ void printPause(GameInfo_t *GameInfo) {
     }
 }
 
+static long long getTime() {
+    struct timespec ts;
+    timespec_get(&ts, TIME_UTC);
+  return (long long)ts.tv_sec * 1000 + ts.tv_nsec / 1000000LL;
+}
 
 bool processKey(UserAction_t *action, bool *hold) {
     static int prev_key = 0;
+    static long long last_press_time = 0;
     int key = getch();
     bool res = true;
+    long long now = getTime();
 
     switch (key)
     {
@@ -202,11 +210,19 @@ bool processKey(UserAction_t *action, bool *hold) {
     }
 
     if (res) {
-        *hold = (key == prev_key);
-        prev_key = key;
-    } else {
-        *hold = false;
-        prev_key = 0;
+        // Новое нажатие
+        if (key == prev_key) {
+            // Проверяем, сколько времени прошло с последнего нажатия
+            if (now - last_press_time < HOLD_THRESHOLD_MS)
+                *hold = true;
+            else
+                *hold = false;
+        } else {
+            // Другая клавиша — начинаем заново
+            *hold = false;
+            prev_key = key;
+        }
+        last_press_time = now;    
     }
 
     return res;

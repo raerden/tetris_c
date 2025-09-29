@@ -29,7 +29,7 @@ cpptest:
 
 runbuild:
 	@$(RM) a.out
-	$(CC) -Werror -std=c11 gui/cli/frontend.c brick_game/tetris/backend.c work.c -lncurses
+	$(CC) -Werror -std=c11 gui/cli/frontend.c brick_game/tetris/backend.c brick_game.c -lncurses
 
 run: runbuild
 	./a.out

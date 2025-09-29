@@ -19,9 +19,32 @@ void userInput(UserAction_t action, bool hold) {
             // case Up: gameWin(); break;
             case Up: spawnFigure(); break;
             case Down: dropDown(); break;
-            // case Down: moveDown(); break;
-            // case Down: moveDown(); break;
+           
+            // Одно нажатие смещение на шаг вниз
+            // Зажатие кнопки вниз - падение фигуры
+            // По заданию не требуется
+            // case Down: 
+            //     hold ? dropDown() : moveDown();
+                
+            break;
         }
+    }
+}
+
+//Игровой тик.
+void stepGame() {
+    TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
+
+    if (currentState(FSM_Spawn)) {
+        spawnFigure();
+    } else if (currentState(FSM_Moving)) {
+
+        if (TetrisGameInfo->fastDrop || isTimerExpired()) {
+            moveDown();
+        } 
+
+    } else if (currentState(FSM_Attaching)) {
+        attachFigure();
     }
 }
 
@@ -76,8 +99,19 @@ void startGame() {
     clearMatrix(TetrisGameInfo->field, FIELD_H, FIELD_W);
     genNextFigure();
     spawnFigure();
-    // setState(FSM_Moving);
-    // printlog("startGame() set to FSM_Moving             ");
+}
+
+void gamePause() {
+    TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
+    if (TetrisGameInfo->pause == 1) {
+        TetrisGameInfo->pause = 0;
+        TetrisGameInfo->time = getTime();
+        setState(FSM_Moving);
+    }
+    else if (TetrisGameInfo->pause == 0) {
+        TetrisGameInfo->pause = 1;
+        setState(FSM_GamePause);
+    }
 }
 
 void gameWin() {
@@ -155,7 +189,7 @@ void deleteLines() {
 }
 
 
-long long getTime() {
+static long long getTime() {
     struct timespec ts;
     timespec_get(&ts, TIME_UTC);
   return (long long)ts.tv_sec * 1000 + ts.tv_nsec / 1000000LL;
@@ -274,23 +308,21 @@ void genNextFigure() {
 
 void spawnFigure() {
     TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
-    copyMatrix(TetrisGameInfo->figure, TetrisGameInfo->next, FIGURE_FIELD_SIZE, FIGURE_FIELD_SIZE);
-    TetrisGameInfo->figure_w = TetrisGameInfo->next_w;
-    TetrisGameInfo->figure_h = TetrisGameInfo->next_h;
-    TetrisGameInfo->pos_x = SPAWN_X - (TetrisGameInfo->figure_w == 4 ? 1 : 0);
-    TetrisGameInfo->pos_y = SPAWN_Y;
-    TetrisGameInfo->fastDrop = false;
-
+    int spawn_x = SPAWN_X - (TetrisGameInfo->next_w == 4 ? 1 : 0);
     // проверить коллизию из фигуры и перевести в FSM_Start
-    if (isCollided(TetrisGameInfo->figure, TetrisGameInfo->figure_h, TetrisGameInfo->figure_w, TetrisGameInfo->pos_y, TetrisGameInfo->pos_x)) {
+    if (isCollided(TetrisGameInfo->next, TetrisGameInfo->next_h, TetrisGameInfo->next_w, SPAWN_Y, spawn_x)) {
         TetrisGameInfo->pause = 3;// Поражение
         setState(FSM_Start);
-        printlog("spawnFigure() set to FSM_Start");
     } else {
+        copyMatrix(TetrisGameInfo->figure, TetrisGameInfo->next, FIGURE_FIELD_SIZE, FIGURE_FIELD_SIZE);
+        TetrisGameInfo->figure_w = TetrisGameInfo->next_w;
+        TetrisGameInfo->figure_h = TetrisGameInfo->next_h;
+        TetrisGameInfo->pos_x = spawn_x;
+        TetrisGameInfo->pos_y = SPAWN_Y;
+        TetrisGameInfo->fastDrop = false;
         genNextFigure();
-        setState(FSM_Moving);
         TetrisGameInfo->time = getTime();
-        printlog("spawnFigure() set to FSM_Moving");
+        setState(FSM_Moving);
     }
 }
 
@@ -344,6 +376,16 @@ bool isCollided(int **figure, int heigth, int width, int pos_y, int pos_x) {
     return res;
 }
 
+bool isGameRunning() {
+    TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
+    return !currentState(FSM_Terminate);
+}
+
+bool isTimerExpired() {
+    TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
+    return getTime() - TetrisGameInfo->time > TetrisGameInfo->speed;
+}
+
 void swapInt(int *a, int *b) {
     int t = *b;
     *b = *a;
@@ -381,9 +423,6 @@ void moveLeft() {
          TetrisGameInfo->pos_y, TetrisGameInfo->pos_x - 1)) {
         
         TetrisGameInfo->pos_x -= 1;
-        // printlog("x=%d y=%d x+w=%d y+h=%d", TetrisGameInfo->pos_x, TetrisGameInfo->pos_y,
-        // TetrisGameInfo->pos_x + TetrisGameInfo->figure_w,
-        // TetrisGameInfo->pos_y + TetrisGameInfo->figure_h);
     }
 }
 
@@ -394,15 +433,11 @@ void moveRigth() {
          TetrisGameInfo->pos_y, TetrisGameInfo->pos_x + 1)) {
 
         TetrisGameInfo->pos_x += 1;
-        // printlog("x=%d y=%d x+w=%d y+h=%d", TetrisGameInfo->pos_x, TetrisGameInfo->pos_y,
-        // TetrisGameInfo->pos_x + TetrisGameInfo->figure_w,
-        // TetrisGameInfo->pos_y + TetrisGameInfo->figure_h);
     }
 }
 
 void moveDown() {
     TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
-
     if (isCollided(TetrisGameInfo->figure, \
         TetrisGameInfo->figure_h, TetrisGameInfo->figure_w, \
         TetrisGameInfo->pos_y + 1, TetrisGameInfo->pos_x)) {
@@ -411,24 +446,13 @@ void moveDown() {
         TetrisGameInfo->pos_y++;
         if (!TetrisGameInfo->fastDrop)
             setState(FSM_Moving);
+        TetrisGameInfo->time = getTime();
     }
 }
 
 void dropDown() {
     TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
     TetrisGameInfo->fastDrop = true;
-    
-    // int max_y = FIELD_H - TetrisGameInfo->figure_h + 1;
-    // for (int y = TetrisGameInfo->pos_y; y < max_y; y++) {
-    //     if (isCollided(TetrisGameInfo->figure, \
-    //         TetrisGameInfo->figure_h, TetrisGameInfo->figure_w, \
-    //         y, TetrisGameInfo->pos_x)) {
-    //         break;
-    //     } else {
-    //         TetrisGameInfo->pos_y = y;
-    //     }
-    // }
-    // setState(FSM_Attaching);
 }
 
 void attachFigure() {
@@ -442,25 +466,9 @@ void attachFigure() {
     deleteLines();
     if (currentState(FSM_Attaching))
         setState(FSM_Spawn);
-    printlog("attachFigure() set FSM_Spawn");
 }
 
-void gamePause() {
-    TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
-    if (TetrisGameInfo->pause == 1) {
-        TetrisGameInfo->pause = 0;
-        TetrisGameInfo->time = getTime();
-        setState(FSM_Moving);
-        printlog("Play game                ");
-    }
-    else if (TetrisGameInfo->pause == 0) {
-        TetrisGameInfo->pause = 1;
-        setState(FSM_GamePause);
-        printlog("Pause game                 ");
-    }
-}
-
-int makeChecksum(int num) {
+int genCheckSum(int num) {
     const int secret = SECRET_CHECKSUM;
     return (num ^ secret) + (num << 3);
 }
@@ -468,7 +476,7 @@ int makeChecksum(int num) {
 void saveScore(int score) {
     score_t data = {0};
     data.score = score;
-    data.checksum = makeChecksum(score);
+    data.checksum = genCheckSum(score);
     FILE *f = fopen(BEST_SCORE_FILE, "wb");
     if (f) {
         fwrite(&data, sizeof(score_t), 1, f);
@@ -483,7 +491,7 @@ int loadScore() {
         score_t data = {0};
         size_t n = fread(&data, sizeof(score_t), 1, f);
         fclose(f);
-        if (data.checksum == makeChecksum(data.score))
+        if (data.checksum == genCheckSum(data.score))
             res = data.score;
     }
     return res;

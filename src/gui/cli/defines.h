@@ -20,6 +20,8 @@
 #define KEY_START_N 10 // \n Enter
 #define KEY_START_R 13 // \r  Enter
 
+#define HOLD_THRESHOLD_MS   100  // через сколько после первого нажатия считаем «зажато»
+
 #define COLR_RED 1
 #define COLR_ORANGE 208
 #define COLR_YELLOW 11
@@ -28,7 +30,7 @@
 #define COLR_BLUE   20
 #define COLR_PURPLE 90
 
-#define GETCH_TIMEOUT 15
+#define GETCH_TIMEOUT 10
 #define ESC_TIMEOUT 30
 #define PRESS_ENTER_MESSAGE "Press ENTER to start"
 #define PRESS_ENTER_MESSAGE_LEN 20

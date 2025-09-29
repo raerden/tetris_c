@@ -3,12 +3,13 @@
 
 #include <time.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include "../../brick_game.h"
 
-#define SPAWN_X 4
-#define SPAWN_Y 0
 #define FIELD_W     10
 #define FIELD_H     20
+#define SPAWN_X 4
+#define SPAWN_Y 0
 #define FIGURE_FIELD_SIZE 4
 #define INITIAL_SPEED 1250
 #define LEVEL_TRESHOLD 600
@@ -53,9 +54,12 @@ typedef struct {
 
 TetrisGameInfo_t *getTetrisGameInfo();
 void tetrisToGameInfo(GameInfo_t *GameInfo);
-
+void stepGame();
 void startGame();
 void terminateGame(GameInfo_t *gameInfo);
+
+void setState(FSM_State_t state);
+bool currentState(FSM_State_t state);
 
 void gamePause();
 void gameWin();
@@ -66,38 +70,34 @@ int calcScore(int full_rows);
 
 bool isFullRow(int **field, int row);
 bool isCollided(int **figure, int heigth, int width, int pos_y, int pos_x);
+bool isGameRunning();
+bool isTimerExpired();
 
 void removeRow(int **field, int row);
-
 void deleteLines();
-long long getTime();
 
 int **createMatrix(int row, int col);
 void freeMatrix(int **matrix, int size);
 void copyMatrix(int **dst, int **scr, int row, int col);
 void clearMatrix(int **matrix, int row, int col);
 
-void setState(FSM_State_t state);
-bool currentState(FSM_State_t state);
-
-
 void genNextFigure();
 void spawnFigure();
 void copyFigureToField();
 
-
 void swapInt(int *a, int *b);
+static long long getTime();
 
-void rotateFigure();
 void moveLeft();
 void moveRigth();
 void moveDown();
 void dropDown();
+void rotateFigure();
 
 void attachFigure();
 void deleteLines();
 
-int makeChecksum(int num);
+int genCheckSum(int num);
 void saveScore(int score);
 int loadScore();
 

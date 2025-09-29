@@ -1,6 +1,7 @@
 #ifndef BRICKGAME_FRONTEND_H
 #define BRICKGAME_FRONTEND_H
 
+#include <time.h>
 #include <ncurses.h>
 #include "defines.h"
 #include "../../brick_game.h"
@@ -17,6 +18,7 @@ void printNext(GameInfo_t *GameInfo);
 void printPause(GameInfo_t *GameInfo);
 void renderGame(GameInfo_t *GameInfo);
 
+static long long getTime();
 bool processKey(UserAction_t *action, bool *hold);
 void userAction();
 

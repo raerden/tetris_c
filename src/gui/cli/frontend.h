@@ -12,11 +12,11 @@ void winClose();
 void printRectangle(int top_y, int bottom_y, int left_x, int right_x);
 void printBoard();
 void clearField();
-void printField(GameInfo_t *GameInfo);
-void printStats(GameInfo_t *GameInfo);
-void printNext(GameInfo_t *GameInfo);
-void printPause(GameInfo_t *GameInfo);
-void renderGame(GameInfo_t *GameInfo);
+void printField(GameInfo_t *gameInfo);
+void printStats(GameInfo_t *gameInfo);
+void printNext(GameInfo_t *gameInfo);
+void printPause(GameInfo_t *gameInfo);
+void renderGame(GameInfo_t *gameInfo);
 
 static long long getTime();
 bool processKey(UserAction_t *action, bool *hold);

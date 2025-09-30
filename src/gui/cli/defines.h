@@ -9,7 +9,7 @@
 
 #define BOARD_H     20
 #define BOARD_W     20
-#define INFO_W      12
+#define INFO_W      13
 
 #define KEY_ACTION 32 // пробел
 #define KEY_TERMINATE 27 // ESC

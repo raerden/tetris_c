@@ -1,11 +1,17 @@
 #include "backend.h"
 
+void setScore() {
+    TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
+    TetrisGameInfo->score += 600;
+    TetrisGameInfo->high_score = TetrisGameInfo->score;
+}
+
 // Каждая библиотека с игрой должна иметь функцию, принимающую на вход пользовательский ввод.
 // дергается из фронта если нажали кнопку.
 void userInput(UserAction_t action, bool hold) {
     if (action == Terminate) {
-        setState(FSM_Terminate);
-    } else if (action == Start && currentState(FSM_Start)) {
+        terminateGame();
+    } else if (action == Start) {
         startGame();
     } else if (action == Pause && !currentState(FSM_Start)) {
         gamePause();
@@ -16,61 +22,18 @@ void userInput(UserAction_t action, bool hold) {
             case Left: moveLeft(); break;
             case Right: moveRigth(); break;
             case Down: dropDown(); break;
+            // case Up: spawnFigure(); break;
+            case Up: setScore(); break;
             break;
         }
     }
 }
 
-void tetrisLogo() {
-    TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
-
-    // данные заставки "TETRIS"
-    int logo[FIELD_H][FIELD_W] = {
-{0,0,0,0,0,0,0,0,0,0},
-{1,1,1,0,1,1,1,1,0,0},
-{0,1,0,0,1,0,0,0,0,0},
-{0,1,0,0,1,1,1,0,0,0},
-{0,1,0,0,1,0,0,0,0,0},
-{0,1,0,0,1,1,1,1,0,0},
-{0,0,0,0,0,0,0,0,0,0},
-{0,1,1,1,0,2,1,1,0,0},
-{0,0,1,0,0,1,0,0,1,0},
-{0,0,3,0,0,1,0,1,0,0},
-{0,0,1,0,0,1,1,0,0,0},
-{0,0,1,0,0,4,0,1,0,0},
-{0,0,1,0,0,1,0,0,1,0},
-{0,0,0,0,0,0,0,0,0,0},
-{0,0,0,1,0,0,0,1,1,0},
-{0,0,0,5,0,0,1,0,0,1},
-{0,0,0,1,0,0,0,1,0,0},
-{0,0,0,1,0,0,0,0,1,0},
-{0,0,0,6,0,0,7,0,0,1},
-{0,0,0,1,0,0,0,1,1,0}
-    };
-
-    // копируем в поле
-    for (int y = 0; y < FIELD_H; y++) {
-        for (int x = 0; x < FIELD_W; x++) {
-            TetrisGameInfo->field[y][x] = logo[y][x];
-        }
-    }
-
-}
-
 //вызывается в цикле while frontend пока идет игра
 GameInfo_t updateCurrentState() {
-    static GameInfo_t GameInfo = {0};
-    if (GameInfo.field == NULL) {
-        GameInfo.field = createMatrix(FIELD_H, FIELD_W);
-    }
-
     TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
-    if (currentState(FSM_Start))
-        tetrisLogo();
 
-    if (currentState(FSM_Terminate)) {
-        terminateGame(&GameInfo);
-    } else if (currentState(FSM_Spawn)) {
+    if (currentState(FSM_Spawn)) {
         spawnFigure();
     } else if (currentState(FSM_Moving)) {
 
@@ -81,9 +44,8 @@ GameInfo_t updateCurrentState() {
     } else if (currentState(FSM_Attaching)) {
         attachFigure();
     }
-
-    tetrisToGameInfo(&GameInfo);
-    return GameInfo;
+    
+    return tetrisToGameInfo();
 }
 
 //функция синглтон. Хранит внутри себя static структуру с информацией об игре
@@ -93,11 +55,12 @@ TetrisGameInfo_t *getTetrisGameInfo() {
         //первый вызов функции. Инициализация
         srand(getTime()); //сброс rand() текущим временем
         TetrisGameInfo.field = createMatrix(FIELD_H, FIELD_W);
+        TetrisGameInfo.field_front = createMatrix(FIELD_H, FIELD_W);
         TetrisGameInfo.next = createMatrix(FIGURE_FIELD_SIZE, FIGURE_FIELD_SIZE);
         TetrisGameInfo.figure = createMatrix(FIGURE_FIELD_SIZE, FIGURE_FIELD_SIZE);
         TetrisGameInfo.figure_tmp = createMatrix(FIGURE_FIELD_SIZE, FIGURE_FIELD_SIZE);
+        tetrisLogo();
         TetrisGameInfo.state = FSM_Start;
-        TetrisGameInfo.pause = 0;// Стартовое приглашение к игре.
     }
     return &TetrisGameInfo;
 }
@@ -143,12 +106,14 @@ void gamePause() {
 
 void gameWin() {
     TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
+    saveScore(TetrisGameInfo->high_score);
     TetrisGameInfo->pause = 2;
     setState(FSM_Start);
 }
 
 void gameOver() {
     TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
+    saveScore(TetrisGameInfo->high_score);
     TetrisGameInfo->pause = 3;
     setState(FSM_Start);
 }
@@ -255,12 +220,12 @@ void clearMatrix(int **matrix, int row, int col) {
             matrix[i][j] = 0;
 }
 
-void terminateGame(GameInfo_t *gameInfo) {
+void terminateGame() {
     TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
-    saveScore(TetrisGameInfo->high_score);
-    freeMatrix(gameInfo->field, FIELD_H);
+    // saveScore(TetrisGameInfo->high_score);
     freeMatrix(TetrisGameInfo->field, FIELD_H);
     freeMatrix(TetrisGameInfo->next, FIGURE_FIELD_SIZE);
+    freeMatrix(TetrisGameInfo->field_front, FIELD_H);
     freeMatrix(TetrisGameInfo->figure, FIGURE_FIELD_SIZE);
     freeMatrix(TetrisGameInfo->figure_tmp, FIGURE_FIELD_SIZE);
 }
@@ -353,24 +318,27 @@ void spawnFigure() {
     }
 }
 
-void tetrisToGameInfo(GameInfo_t *GameInfo) {
+GameInfo_t tetrisToGameInfo() {
     const TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
-    copyMatrix(GameInfo->field, TetrisGameInfo->field, FIELD_H, FIELD_W);
+    copyMatrix(TetrisGameInfo->field_front, TetrisGameInfo->field, FIELD_H, FIELD_W);
 
     for (int y = 0; y < TetrisGameInfo->figure_h; y++)
         for (int x = 0; x < TetrisGameInfo->figure_w; x++) {
             int field_x = x + TetrisGameInfo->pos_x;
             int field_y = y + TetrisGameInfo->pos_y;
             if (TetrisGameInfo->figure[y][x] > 0 && field_x < FIELD_W && field_y < FIELD_H)
-                GameInfo->field[field_y][field_x] = TetrisGameInfo->figure[y][x];
+                TetrisGameInfo->field_front[field_y][field_x] = TetrisGameInfo->figure[y][x];
         }
 
-    GameInfo->next = TetrisGameInfo->next;
-    GameInfo->score = TetrisGameInfo->score;
-    GameInfo->high_score = TetrisGameInfo->high_score;
-    GameInfo->level = TetrisGameInfo->level;
-    GameInfo->speed = TetrisGameInfo->speed;
-    GameInfo->pause = TetrisGameInfo->pause;
+    GameInfo_t gameInfo = {0};
+    gameInfo.field = TetrisGameInfo->field_front;
+    gameInfo.next = TetrisGameInfo->next;
+    gameInfo.score = TetrisGameInfo->score;
+    gameInfo.high_score = TetrisGameInfo->high_score;
+    gameInfo.level = TetrisGameInfo->level;
+    gameInfo.speed = TetrisGameInfo->speed;
+    gameInfo.pause = TetrisGameInfo->pause;
+    return gameInfo;
 }
 
 bool isCollided(int **figure, int heigth, int width, int pos_y, int pos_x) {
@@ -474,7 +442,7 @@ void attachFigure() {
                 TetrisGameInfo->field[y + TetrisGameInfo->pos_y][x + TetrisGameInfo->pos_x] \
                  = TetrisGameInfo->figure[y][x];
     
-    deleteLines();
+    deleteLines();//Может выставить FSM_Start если прошли 10 уровней = Победа.
     if (currentState(FSM_Attaching))
         setState(FSM_Spawn);
 }
@@ -506,4 +474,39 @@ int loadScore() {
             res = data.score;
     }
     return res;
+}
+
+void tetrisLogo() {
+    TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
+
+    // данные заставки "TETRIS"
+    int logo[FIELD_H][FIELD_W] = {
+        {3,3,1,0,0,0,0,0,0,0},
+        {0,3,0,0,3,3,3,1,0,0},
+        {0,3,0,0,3,0,0,0,0,0},
+        {0,1,0,0,1,1,1,0,0,0},
+        {0,0,0,0,2,0,0,0,0,0},
+        {0,0,0,0,2,2,2,1,0,0},
+        {0,0,0,0,0,0,0,0,0,0},
+        {0,1,2,2,0,3,3,3,0,0},
+        {0,0,2,0,0,3,0,0,1,0},
+        {0,0,2,0,0,1,0,1,0,0},
+        {0,0,1,0,0,2,2,0,0,0},
+        {0,0,0,0,0,2,0,1,0,0},
+        {0,0,0,0,0,2,0,0,1,0},
+        {0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,1,0,0,0,1,1,0},
+        {0,0,0,2,0,0,1,0,0,1},
+        {0,0,0,3,0,0,0,1,0,0},
+        {0,0,0,4,0,0,0,0,1,0},
+        {0,0,0,5,0,0,7,0,0,1},
+        {0,0,0,0,0,0,0,1,1,0}
+    };
+
+    // копируем в поле
+    for (int y = 0; y < FIELD_H; y++) {
+        for (int x = 0; x < FIELD_W; x++) {
+            TetrisGameInfo->field[y][x] = logo[y][x];
+        }
+    }
 }

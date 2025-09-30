@@ -20,13 +20,13 @@ typedef enum {
     FSM_Spawn,
     FSM_Moving,   //перемещение фигуры игроком или таймером
     FSM_Attaching,
-    FSM_GamePause,
-    FSM_Terminate,
+    FSM_GamePause
 } FSM_State_t;
 
 typedef struct {
   FSM_State_t state;
   int **field;
+  int **field_front; //поле для фронтенда
   int **next;
   int next_w;
   int next_h;
@@ -51,9 +51,10 @@ typedef struct {
 } score_t;
 
 TetrisGameInfo_t *getTetrisGameInfo();
-void tetrisToGameInfo(GameInfo_t *GameInfo);
+GameInfo_t tetrisToGameInfo();
+
 void startGame();
-void terminateGame(GameInfo_t *gameInfo);
+void terminateGame();
 
 void setState(FSM_State_t state);
 bool currentState(FSM_State_t state);
@@ -95,5 +96,6 @@ void deleteLines();
 int genCheckSum(int num);
 void saveScore(int score);
 int loadScore();
+void tetrisLogo();
 
 #endif

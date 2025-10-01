@@ -8,7 +8,6 @@
 
 #define SPAWN_X 4
 #define SPAWN_Y 0
-#define FIGURE_FIELD_SIZE 4
 #define INITIAL_SPEED 1250
 #define LEVEL_TRESHOLD 600
 #define MAX_LEVEL 10

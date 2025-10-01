@@ -17,7 +17,6 @@ void printStats(GameInfo_t *gameInfo);
 void printNext(GameInfo_t *gameInfo);
 void printPause(GameInfo_t *gameInfo);
 void renderGame(GameInfo_t *gameInfo);
-
 static long long getTime();
 bool processKey(UserAction_t *action, bool *hold);
 UserAction_t userAction();

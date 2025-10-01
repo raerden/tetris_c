@@ -30,12 +30,6 @@
 
 #define GETCH_TIMEOUT 10
 #define ESC_TIMEOUT 30
-#define PRESS_ENTER_MESSAGE "Press ENTER to start"
-#define PRESS_ENTER_MESSAGE_LEN 20
-#define PRESS_P_MESSAGE "Press P to continue"
-#define PRESS_P_MESSAGE_LEN 19
-#define PRESS_Q_MESSAGE "Press ESC to quit"
-#define PRESS_Q_MESSAGE_LEN 17
 
 #define PAUSE_MESSAGE "Game on pause"
 #define PAUSE_MESSAGE_LEN 13

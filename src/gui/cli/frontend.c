@@ -79,8 +79,8 @@ void printRectangle(int top_y, int bottom_y, int left_x, int right_x)
 
 void printNext(GameInfo_t *gameInfo) {
     // очистка предыдущей фигуры
-    for (int i = 0; i < NEXT_SIZE - 1; i++)
-        for (int j = 0; j < NEXT_SIZE; j++) {
+    for (int i = 0; i < FIGURE_FIELD_SIZE - 1; i++)
+        for (int j = 0; j < FIGURE_FIELD_SIZE; j++) {
             MVADDCH(12 + i, BOARD_W + 5 + (j * 2 + 1), ' ');
             MVADDCH(12 + i, BOARD_W + 5 + (j * 2 + 2), ' ');
         }
@@ -91,15 +91,15 @@ void printNext(GameInfo_t *gameInfo) {
     char ch_R = color_on ? ' ' : ']';
 
     // найти цвет фигурки в матрице **next
-    for (int i = 0; color_on && i < NEXT_SIZE; i++) 
+    for (int i = 0; color_on && i < FIGURE_FIELD_SIZE; i++) 
         if (gameInfo->next[0][i] > 0) {
             color = gameInfo->next[0][i];
             break;
         }
 
     if (color_on) attron(COLOR_PAIR(color));
-    for (int i = 0; i < NEXT_SIZE; i++)
-        for (int j = 0; j < NEXT_SIZE; j++) 
+    for (int i = 0; i < FIGURE_FIELD_SIZE; i++)
+        for (int j = 0; j < FIGURE_FIELD_SIZE; j++) 
             if (gameInfo->next[i][j]) {
                 MVADDCH(12 + i, BOARD_W + 5 + (j * 2 + 1), ch_L);
                 MVADDCH(12 + i, BOARD_W + 5 + (j * 2 + 2), ch_R);
@@ -153,7 +153,6 @@ void printPause(GameInfo_t *gameInfo) {
     if (gameInfo->pause == 1) {// Пауза
         MVPRINTW(BOARD_H / 2 - 3, (BOARD_W - PAUSE_MESSAGE_LEN) / 2 + 1, PAUSE_MESSAGE);
         MVPRINTW(BOARD_H / 2 - 1, (BOARD_W - SMILE_WIDTH) / 2 + 1, SMILE_PAUSE);
-        // MVPRINTW(BOARD_H / 2, (BOARD_W - PRESS_P_MESSAGE_LEN) / 2 + 1, PRESS_P_MESSAGE);
     } else if (gameInfo->pause == 2) {// Победа
         MVPRINTW(BOARD_H / 2 - 3, (BOARD_W - WIN_MESSAGE_LEN) / 2 + 1, WIN_MESSAGE);
         MVPRINTW(BOARD_H / 2 - 1, (BOARD_W - SMILE_WIDTH) / 2 + 1, SMILE_WIN);
@@ -161,14 +160,6 @@ void printPause(GameInfo_t *gameInfo) {
         MVPRINTW(BOARD_H / 2 - 3, (BOARD_W - LOSE_MESSAGE_LEN) / 2 + 1, LOSE_MESSAGE);
         MVPRINTW(BOARD_H / 2 - 1, (BOARD_W - SMILE_WIDTH) / 2 + 1, SMILE_SAD);
     }
-
-
-    // if (gameInfo->pause == 2 || gameInfo->pause == 3 || gameInfo->pause == 4) {
-    //     MVPRINTW(BOARD_H / 2, (BOARD_W - PRESS_ENTER_MESSAGE_LEN) / 2 + 1, PRESS_ENTER_MESSAGE);
-    // }
-    // if (gameInfo->pause > 0) {
-    //     MVPRINTW(BOARD_H / 2 + 1, (BOARD_W - PRESS_Q_MESSAGE_LEN) / 2 + 1 , PRESS_Q_MESSAGE);
-    // }
 }
 
 static long long getTime() {
@@ -254,25 +245,4 @@ void renderGame(GameInfo_t *gameInfo) {
         else 
             printPause(gameInfo);
     }
-}
-
-int main() {
-    winInit();
-    
-    GameInfo_t gameInfo = {0};
-
-    while(userAction() != Terminate) {
-        gameInfo = updateCurrentState();
-        renderGame(&gameInfo);
-    }
-
-
-    // gameInfo.pause = 1;
-    // printPause(&gameInfo);
-// timeout(-1);
-// getch();
-
-    winClose();
-
-    return 0;
 }

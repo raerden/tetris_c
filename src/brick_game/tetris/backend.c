@@ -23,7 +23,6 @@ void userInput(UserAction_t action, bool hold) {
             case Right: moveRigth(); break;
             case Down: dropDown(); break;
             // case Up: spawnFigure(); break;
-            case Up: setScore(); break;
             break;
         }
     }
@@ -48,7 +47,7 @@ GameInfo_t updateCurrentState() {
     return tetrisToGameInfo();
 }
 
-//функция синглтон. Хранит внутри себя static структуру с информацией об игре
+//Хранит внутри static структуру с информацией об игре
 TetrisGameInfo_t *getTetrisGameInfo() {
     static TetrisGameInfo_t TetrisGameInfo = {0};
     if (TetrisGameInfo.field == NULL) {
@@ -63,6 +62,29 @@ TetrisGameInfo_t *getTetrisGameInfo() {
         TetrisGameInfo.state = FSM_Start;
     }
     return &TetrisGameInfo;
+}
+
+GameInfo_t tetrisToGameInfo() {
+    const TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
+    copyMatrix(TetrisGameInfo->field_front, TetrisGameInfo->field, FIELD_H, FIELD_W);
+
+    for (int y = 0; y < TetrisGameInfo->figure_h; y++)
+        for (int x = 0; x < TetrisGameInfo->figure_w; x++) {
+            int field_x = x + TetrisGameInfo->pos_x;
+            int field_y = y + TetrisGameInfo->pos_y;
+            if (TetrisGameInfo->figure[y][x] > 0 && field_x < FIELD_W && field_y < FIELD_H)
+                TetrisGameInfo->field_front[field_y][field_x] = TetrisGameInfo->figure[y][x];
+        }
+
+    GameInfo_t gameInfo = {0};
+    gameInfo.field = TetrisGameInfo->field_front;
+    gameInfo.next = TetrisGameInfo->next;
+    gameInfo.score = TetrisGameInfo->score;
+    gameInfo.high_score = TetrisGameInfo->high_score;
+    gameInfo.level = TetrisGameInfo->level;
+    gameInfo.speed = TetrisGameInfo->speed;
+    gameInfo.pause = TetrisGameInfo->pause;
+    return gameInfo;
 }
 
 void setState(FSM_State_t state) {
@@ -301,10 +323,9 @@ void genNextFigure() {
 void spawnFigure() {
     TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
     int spawn_x = SPAWN_X - (TetrisGameInfo->next_w == 4 ? 1 : 0);
-    // проверить коллизию из фигуры и перевести в FSM_Start
+    // проверить коллизию из фигуры. Поражение если стакан заполнен
     if (isCollided(TetrisGameInfo->next, TetrisGameInfo->next_h, TetrisGameInfo->next_w, SPAWN_Y, spawn_x)) {
-        TetrisGameInfo->pause = 3;// Поражение
-        setState(FSM_Start);
+        gameOver();
     } else {
         copyMatrix(TetrisGameInfo->figure, TetrisGameInfo->next, FIGURE_FIELD_SIZE, FIGURE_FIELD_SIZE);
         TetrisGameInfo->figure_w = TetrisGameInfo->next_w;
@@ -316,29 +337,6 @@ void spawnFigure() {
         TetrisGameInfo->time = getTime();
         setState(FSM_Moving);
     }
-}
-
-GameInfo_t tetrisToGameInfo() {
-    const TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
-    copyMatrix(TetrisGameInfo->field_front, TetrisGameInfo->field, FIELD_H, FIELD_W);
-
-    for (int y = 0; y < TetrisGameInfo->figure_h; y++)
-        for (int x = 0; x < TetrisGameInfo->figure_w; x++) {
-            int field_x = x + TetrisGameInfo->pos_x;
-            int field_y = y + TetrisGameInfo->pos_y;
-            if (TetrisGameInfo->figure[y][x] > 0 && field_x < FIELD_W && field_y < FIELD_H)
-                TetrisGameInfo->field_front[field_y][field_x] = TetrisGameInfo->figure[y][x];
-        }
-
-    GameInfo_t gameInfo = {0};
-    gameInfo.field = TetrisGameInfo->field_front;
-    gameInfo.next = TetrisGameInfo->next;
-    gameInfo.score = TetrisGameInfo->score;
-    gameInfo.high_score = TetrisGameInfo->high_score;
-    gameInfo.level = TetrisGameInfo->level;
-    gameInfo.speed = TetrisGameInfo->speed;
-    gameInfo.pause = TetrisGameInfo->pause;
-    return gameInfo;
 }
 
 bool isCollided(int **figure, int heigth, int width, int pos_y, int pos_x) {

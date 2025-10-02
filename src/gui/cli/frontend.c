@@ -224,6 +224,11 @@ UserAction_t userAction() {
     bool hold = false;
     if (processKey(&action, &hold))
         userInput(action, hold);
+    #ifdef NO_RUN
+    static int cnt = 0;
+    cnt++;
+    if (cnt > 1) action = Terminate;
+    #endif
     return action;
 }
 

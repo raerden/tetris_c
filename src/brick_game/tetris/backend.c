@@ -377,7 +377,7 @@ void rotateFigure() {
     //Коллизия при повороте с правой стенкой. Отскок фигуры влево.
     int new_x = TetrisGameInfo->pos_x;
     if (TetrisGameInfo->pos_x + TetrisGameInfo->figure_h > FIELD_W)
-        new_x = TetrisGameInfo->pos_x - (TetrisGameInfo->pos_x + TetrisGameInfo->figure_h - FIELD_W);
+        new_x = FIELD_W - TetrisGameInfo->figure_h;
 
     if (!isCollided(TetrisGameInfo->figure_tmp, TetrisGameInfo->figure_w, TetrisGameInfo->figure_h, TetrisGameInfo->pos_y, new_x)) {
         swapInt(&TetrisGameInfo->figure_w, &TetrisGameInfo->figure_h);

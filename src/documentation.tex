@@ -1,0 +1,106 @@
+\documentclass[12pt, letterpaper, twoside]{article}
+\usepackage{fontspec}
+\usepackage{polyglossia}
+\setdefaultlanguage{russian}
+\setmainfont{DejaVu Serif}
+
+\title{Документация проекта\\BrickGame Tetris}
+\author{WoodsJul. School 21}
+\date{October 2025}
+
+\begin{document}
+
+\maketitle
+\section{Введение}
+Проект BrickGame v1.0 Tetris представляет собой реализацию классической аркадной игры Тетрис с использованием языка программирования C и библиотеки ncurses для терминального интерфейса.
+
+\section{Структура проекта}
+
+\subsection{Библиотека Tetris {src/brick\_game/tetris}}
+
+\begin{itemize}
+    \item Файлы с исходным кодом, реализующие логику игры Тетрис.
+    \item Функции для взаимодействия с игровым полем, управлением фигурами, проверкой коллизий и обработкой ввода пользователя.
+    \item Реализация конечного автомата для формализации логики игры.
+\end{itemize}
+
+\subsection{Терминальный интерфейс {src/gui/cli}}
+
+\begin{itemize}
+    \item Файлы с исходным кодом, отвечающие за отрисовку игры в терминале с использованием библиотеки ncurses.
+    \item Реализация отрисовки игрового поля, чтение ввода пользователя и отображения текущего состояния игры.
+\end{itemize}
+
+\section{Сборка проекта}
+
+Сборка осуществляется линковщиком {\textbf{make}} с Makefile, включающим следующие цели:
+
+\begin{itemize}
+    \item \textbf{all}: Сборка проекта.
+    \item \textbf{install}: Установка программы в систему.
+    \item \textbf{uninstall}: Удаление программы из системы.
+    \item \textbf{clean}: Очистка временных файлов и папок.
+    \item \textbf{dvi}: Создание файла DVI.
+    \item \textbf{dist}: Создание архива, содержащего необходимые файлы для сборки и запуска программы.
+\end{itemize}
+
+\section{Требования к системе}
+
+Программа разработана на языке С стандарта C11 с использованием компилятора gcc и библиотеки ncurses для терминального интерфейса.
+
+\section{Установка и запуск}
+
+\begin{enumerate}
+    \item \textbf{Установка зависимостей:}
+        \begin{itemize}
+            \item Убедитесь, что у вас установлен компилятор gcc.
+            \item Установите библиотеку ncurses.
+        \end{itemize}
+    \item \textbf{Сборка проекта:}
+        \begin{itemize}
+            \item Выполните \textbf{make all} для сборки проекта.
+        \end{itemize}
+    \item \textbf{Установка:}
+        \begin{itemize}
+            \item Выполните \textbf{make install} для установки программы в систему.
+        \end{itemize}
+    \item \textbf{Запуск:}
+        \begin{itemize}
+            \item Выполните \textbf{make run} для запуска программы.
+        \end{itemize}
+\end{enumerate}
+
+\section{Использование программы}
+
+\begin{enumerate}
+    \item \textbf{Управление:}
+        \begin{itemize}
+            \item Стрелки клавиатуры влево и вправо перемещают фигуру по горизонтали.
+            \item Клавишу вниз ускоренно перемещает фигуру вниз.
+            \item Для поворота фигуры используйте space.
+            \item Для постановки игры на паузу кнопка P.
+            \item Для снятия игры с паузы повторно используйте P.
+            \item Для выхода из игры используйте ESC.
+        \end{itemize}
+    \item \textbf{Механики игры:}
+        \begin{itemize}
+            \item Вращение и перемещение фигур.
+            \item Ускорение падения фигуры.
+            \item Показ следующей фигуры.
+            \item Удаление заполненных линий.
+            \item Прогрессивный подсчет очков.
+            \item Механика увровней при каждом наборе 600 очков.
+            \item Увеличение скорости автоматического движения фигур в зависимости от уровня.
+        \end{itemize}
+    \item \textbf{Завершение игры:}
+        \begin{itemize}
+            \item Игра завершается, когда достигнута верхняя граница игрового поля.
+            \item Игра завершается победой при достижении 10го уровня.
+        \end{itemize}
+\end{enumerate}
+
+\section{Тестирование}
+
+Проект включает в себя unit-тесты с использованием библиотеки check. Покрытие библиотеки тестами составляет не менее 80\%.
+
+\end{document}

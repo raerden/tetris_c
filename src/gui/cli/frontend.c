@@ -165,7 +165,7 @@ void printPause(GameInfo_t *gameInfo) {
 static long long getTime() {
     struct timespec ts;
     timespec_get(&ts, TIME_UTC);
-  return (long long)ts.tv_sec * 1000 + ts.tv_nsec / 1000000LL;
+    return (long long)ts.tv_sec * 1000 + ts.tv_nsec / 1000000LL;
 }
 
 bool processKey(UserAction_t *action, bool *hold) {

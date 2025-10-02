@@ -1,14 +1,15 @@
 #include "backend.h"
 
-void setScore() {
-    TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
-    TetrisGameInfo->score += 600;
-    TetrisGameInfo->high_score = TetrisGameInfo->score;
+static long long getTime() {
+    struct timespec ts;
+    timespec_get(&ts, TIME_UTC);
+    return (long long)ts.tv_sec * 1000 + ts.tv_nsec / 1000000LL;
 }
 
 // Каждая библиотека с игрой должна иметь функцию, принимающую на вход пользовательский ввод.
 // дергается из фронта если нажали кнопку.
 void userInput(UserAction_t action, bool hold) {
+    (void)hold; //чтобы компилятор не ругался на неиспользуемую переменную
     if (action == Terminate) {
         terminateGame();
     } else if (action == Start) {
@@ -22,8 +23,11 @@ void userInput(UserAction_t action, bool hold) {
             case Left: moveLeft(); break;
             case Right: moveRigth(); break;
             case Down: dropDown(); break;
-            // case Up: spawnFigure(); break;
-            break;
+            case Up: 
+            case Pause: 
+            case Terminate: 
+            default: 
+                break;
         }
     }
 }
@@ -40,10 +44,7 @@ GameInfo_t updateCurrentState() {
             moveDown();
         } 
 
-    } else if (currentState(FSM_Attaching)) {
-        attachFigure();
-    }
-    
+    } 
     return tetrisToGameInfo();
 }
 
@@ -193,20 +194,13 @@ void deleteLines() {
             TetrisGameInfo->high_score = TetrisGameInfo->score;
         
         int level = TetrisGameInfo->score / LEVEL_TRESHOLD + 1;
-        if (level > 10) {
+        if (level > 9) {
             gameWin();
         } else if (level > TetrisGameInfo->level) {
             TetrisGameInfo->level = level;
             TetrisGameInfo->speed = calcSpeed(level);
         }
     }
-}
-
-
-static long long getTime() {
-    struct timespec ts;
-    timespec_get(&ts, TIME_UTC);
-  return (long long)ts.tv_sec * 1000 + ts.tv_nsec / 1000000LL;
 }
 
 int **createMatrix(int row, int col) {
@@ -244,7 +238,7 @@ void clearMatrix(int **matrix, int row, int col) {
 
 void terminateGame() {
     TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
-    // saveScore(TetrisGameInfo->high_score);
+    saveScore(TetrisGameInfo->high_score);
     freeMatrix(TetrisGameInfo->field, FIELD_H);
     freeMatrix(TetrisGameInfo->next, FIGURE_FIELD_SIZE);
     freeMatrix(TetrisGameInfo->field_front, FIELD_H);
@@ -418,7 +412,7 @@ void moveDown() {
     if (isCollided(TetrisGameInfo->figure, \
         TetrisGameInfo->figure_h, TetrisGameInfo->figure_w, \
         TetrisGameInfo->pos_y + 1, TetrisGameInfo->pos_x)) {
-        setState(FSM_Attaching);
+        attachFigure();
     } else {
         TetrisGameInfo->pos_y++;
         if (!TetrisGameInfo->fastDrop)
@@ -441,7 +435,7 @@ void attachFigure() {
                  = TetrisGameInfo->figure[y][x];
     
     deleteLines();//Может выставить FSM_Start если прошли 10 уровней = Победа.
-    if (currentState(FSM_Attaching))
+    if (!currentState(FSM_Start))
         setState(FSM_Spawn);
 }
 
@@ -466,7 +460,7 @@ int loadScore() {
     FILE *f = fopen(BEST_SCORE_FILE, "rb");
     if (f) {
         score_t data = {0};
-        size_t n = fread(&data, sizeof(score_t), 1, f);
+        fread(&data, sizeof(score_t), 1, f);
         fclose(f);
         if (data.checksum == genCheckSum(data.score))
             res = data.score;
@@ -476,8 +470,7 @@ int loadScore() {
 
 void tetrisLogo() {
     TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
-
-    // данные заставки "TETRIS"
+    
     int logo[FIELD_H][FIELD_W] = {
         {3,3,1,0,0,0,0,0,0,0},
         {0,3,0,0,3,3,3,1,0,0},
@@ -493,15 +486,14 @@ void tetrisLogo() {
         {0,0,0,0,0,2,0,1,0,0},
         {0,0,0,0,0,2,0,0,1,0},
         {0,0,0,0,0,0,0,0,0,0},
-        {0,0,0,1,0,0,0,1,1,0},
+        {0,0,0,1,0,0,0,2,2,0},
         {0,0,0,2,0,0,1,0,0,1},
         {0,0,0,3,0,0,0,1,0,0},
         {0,0,0,4,0,0,0,0,1,0},
         {0,0,0,5,0,0,7,0,0,1},
-        {0,0,0,0,0,0,0,1,1,0}
+        {0,0,0,0,0,0,0,2,2,0}
     };
 
-    // копируем в поле
     for (int y = 0; y < FIELD_H; y++) {
         for (int x = 0; x < FIELD_W; x++) {
             TetrisGameInfo->field[y][x] = logo[y][x];

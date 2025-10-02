@@ -18,7 +18,6 @@ typedef enum {
     FSM_Start,
     FSM_Spawn,
     FSM_Moving,   //перемещение фигуры игроком или таймером
-    FSM_Attaching,
     FSM_GamePause
 } FSM_State_t;
 
@@ -81,7 +80,6 @@ void genNextFigure();
 void spawnFigure();
 
 void swapInt(int *a, int *b);
-static long long getTime();
 
 void moveLeft();
 void moveRigth();

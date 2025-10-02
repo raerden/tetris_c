@@ -1,7 +1,7 @@
 #This project made by woodsjul
 CC = gcc
 CFLAGS = -Werror -Wall -Wextra -Wpedantic -std=c11
-GCOV_FLAGS = -D TEST_MEMORY_FAILURE -fprofile-arcs -ftest-coverage
+GCOV_FLAGS = -fprofile-arcs -ftest-coverage
 CHECK_FLAGS = -lcheck -lm -lpthread
 UNAME := $(shell uname -s)
 ifeq ($(UNAME), Linux)
@@ -9,6 +9,7 @@ ifeq ($(UNAME), Linux)
 	OPEN_CMD:=xdg-open
 else ifeq ($(shell uname), Darwin)
 	OPEN_CMD:=open
+	CC := clang
 endif
 
 BUILD_DIR = build
@@ -19,15 +20,13 @@ SRC_TETRIS = $(wildcard brick_game/tetris/*.c)
 SRC_CLI = $(wildcard gui/cli/*.c)
 SRC = $(SRC_TETRIS) $(SRC_CLI)
 
-SRC_TESTS = $(wildcard tests/*.c)
-UNIT_TEST_DIR = tests
-TESTS_CHECK = $(wildcard $(UNIT_TEST_DIR)/*.c)
-TEST_EXEC = tests_matrix
-
 OBJ_DIR = obj
 OBJ = $(patsubst %.c, $(OBJ_DIR)/%.o, $(SRC))
-OBJ_TESTS1 = $(patsubst %.c, $(OBJ_DIR)/%-test.o, $(SRC))
-OBJ_TESTS2 = $(patsubst %.c, $(OBJ_DIR)/%-test.o, $(SRC_TESTS))
+
+SRC_TESTS = $(SRC_TETRIS) tests/unit_tetris.c
+OBJ_TESTS = $(patsubst %.c, $(OBJ_DIR)/%-test.o, $(SRC_TESTS))
+TEST_EXEC = tetris_tests
+
 GCOV_DIR = gcov_report
 REPORT_PATH = $(GCOV_DIR)/report/
 
@@ -56,7 +55,7 @@ uninstall:
 	rm -rf ./tetris
 
 clean: 
-	@rm -rf $(BUILD_DIR) $(OBJ_DIR) dvi
+	@rm -rf $(BUILD_DIR) $(OBJ_DIR) dvi $(TEST_EXEC) $(GCOV_DIR)
 
 dist:
 	tar czf brick_game.tar.gz brick_game/ gui/ brick_game.h *.uml Makefile
@@ -68,33 +67,25 @@ dvi:
 run: install
 	./tetris
 
+mem: install
+	valgrind --leak-check=full --suppressions=ncurses.supp ./tetris
 
-
-
-
-
-
-
-
-$(TEST_EXEC): $(OBJ_TESTS1) $(OBJ_TESTS2)
-	@$(CC) $(CFLAGS) -D TEST_MEMORY_FAILURE -o $@ $^ $(CHECK_FLAGS)
-
+$(TEST_EXEC): $(OBJ_TESTS)
+	@$(CC) $(CFLAGS) -o $@ $^ $(CHECK_FLAGS)
 
 $(OBJ_DIR)/%-test.o: %.c
 	@mkdir -p $(@D)
 	@echo "*\c";
-	@$(CC) $(CFLAGS) -D TEST_MEMORY_FAILURE -c $< -o $@
+	@$(CC) $(CFLAGS) -c $< -o $@
 
-buildtest: all $(TEST_EXEC)
-
-test: buildtest
+test: $(TEST_EXEC)
 	@echo "*";
 	@echo "	\033[0;92mStart of all the tests...\033[0m"
 	@./$(TEST_EXEC)
 
 gcov_report: clean
 	mkdir -p $(GCOV_DIR)
-	$(CC) $(CFLAGS) $(GCOV_FLAGS) -o $(GCOV_DIR)/$(TEST_EXEC) $(SRC) $(TESTS_CHECK) $(CHECK_FLAGS)
+	$(CC) $(CFLAGS) $(GCOV_FLAGS) -o $(GCOV_DIR)/$(TEST_EXEC) $(SRC) $(CHECK_FLAGS) -lncurses
 	./$(GCOV_DIR)/$(TEST_EXEC)
 	lcov -t "$(GCOV_DIR)/$(TEST_EXEC)" -o $(GCOV_DIR)/coverage.info -c -d .
 	lcov --remove $(GCOV_DIR)/coverage.info "*/tests/*" -o $(GCOV_DIR)/coverage.info --ignore-errors unused
@@ -105,7 +96,26 @@ gcov_report: clean
 	@echo "Откройте в браузере:"
 	@echo "file://$(CURDIR)/$(REPORT_PATH)index.html"
 	@echo "=============================================="
-	$(OPEN_CMD) ./$(REPORT_PATH)index.html
+# 	$(OPEN_CMD) ./$(REPORT_PATH)index.html
+
+
+
+
+
+
+
+fst:
+	@$(RM) a.out
+	$(CC) -Werror -std=c11 fast.c -lncurses -lm
+
+
+
+
+
+
+
+
+
 
 
 

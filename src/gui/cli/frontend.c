@@ -120,14 +120,6 @@ void printStats(GameInfo_t *gameInfo) {
     printNext(gameInfo);
 }
 
-void clearField() {
-    for (int i = 0; i < FIELD_H; i++)
-        for (int j = 0; j < FIELD_W; j++) {
-            MVADDCH(i+1, (j * 2 + 1), ' ');
-            MVADDCH(i+1, (j * 2 + 2), ' ');
-        }
-}
-
 void printField(GameInfo_t *gameInfo) {
     bool color_on = has_colors();
     char ch_L = color_on ? ' ' : '[';

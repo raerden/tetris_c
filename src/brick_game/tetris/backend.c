@@ -221,7 +221,6 @@ void freeMatrix(int **matrix, int size) {
             free(matrix[i]);
         free(matrix);
     }
-    matrix = NULL;
 }
 
 void copyMatrix(int **dst, int **src, int row, int col) {

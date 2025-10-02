@@ -10,7 +10,6 @@ void winInit();
 void winClose();
 void printRectangle(int top_y, int bottom_y, int left_x, int right_x);
 void printBoard();
-void clearField();
 void printField(GameInfo_t *gameInfo);
 void printStats(GameInfo_t *gameInfo);
 void printNext(GameInfo_t *gameInfo);

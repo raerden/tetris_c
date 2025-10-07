@@ -2,7 +2,7 @@
 CC = gcc
 CFLAGS = -Werror -Wall -Wextra -Wpedantic -std=c11
 GCOV_FLAGS = -fprofile-arcs -ftest-coverage -D NO_RUN
-CHECK_FLAGS = -lcheck -lm -lpthread
+CHECK_FLAGS = -lm -lpthread
 UNAME := $(shell uname -s)
 ifeq ($(UNAME), Linux)
     CHECK_FLAGS += -lsubunit
@@ -10,6 +10,15 @@ ifeq ($(UNAME), Linux)
 else ifeq ($(shell uname), Darwin)
 	OPEN_CMD:=open
 	CC := clang
+endif
+# Auto-detect check library
+CHECK_STATIC := $(wildcard /usr/local/lib/libcheck.a /opt/homebrew/lib/libcheck.a /usr/lib/libcheck.a)
+ifneq ($(CHECK_STATIC),)
+    CHECK_LIBS := $(firstword $(CHECK_STATIC))
+else ifneq ($(shell pkg-config --exists check 2>/dev/null && echo yes),)
+    CHECK_LIBS := $(shell pkg-config --libs check)
+else
+    CHECK_LIBS := -lcheck
 endif
 
 BUILD_DIR = build
@@ -44,7 +53,7 @@ $(OBJ_DIR)/%.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 install: $(LIB_PATH)
-	gcc $(LIB_PATH) $(CFLAGS) -lncurses -g -o tetris
+	$(CC) $(LIB_PATH) $(CFLAGS) -lncurses -g -o tetris
 
 uninstall:
 	rm -rf ./tetris score.dt
@@ -66,10 +75,10 @@ mem: install
 	valgrind --leak-check=full --suppressions=ncurses.supp ./tetris
 
 $(TEST_EXEC): $(OBJ_TESTS)
-	$(CC) $(CFLAGS) -o $@ $^ $(CHECK_FLAGS)
+	$(CC) $(CFLAGS) -o $@ $^ $(CHECK_LIBS) $(CHECK_FLAGS) 
 
 test: clean $(TEST_EXEC)
-	echo "	\033[0;92mStart of all the tests...\033[0m"
+	@echo "	\033[0;92mStart of all the tests...\033[0m"
 	./$(TEST_EXEC)
 
 $(GCOV_DIR)/%.o: %.c
@@ -77,7 +86,7 @@ $(GCOV_DIR)/%.o: %.c
 	$(CC) $(CFLAGS) $(GCOV_FLAGS) -c $< -o $@
 
 gcov_report: clean $(GCOV_OBJ)
-	$(CC) $(CFLAGS) $(GCOV_FLAGS) -o $(GCOV_DIR)/$(TEST_EXEC) $(GCOV_OBJ) tests/unit_tetris.c $(CHECK_FLAGS) -lncurses
+	$(CC) $(CFLAGS) $(GCOV_FLAGS) -o $(GCOV_DIR)/$(TEST_EXEC) $(GCOV_OBJ) tests/unit_tetris.c $(CHECK_LIBS) $(CHECK_FLAGS) -lncurses
 	./$(GCOV_DIR)/$(TEST_EXEC)
 	lcov -t "$(GCOV_DIR)/$(TEST_EXEC)" -o $(GCOV_DIR)/coverage.info -c -d .
 	lcov --remove $(GCOV_DIR)/coverage.info "*/tests/*" "*/gui/*" -o $(GCOV_DIR)/coverage.info --ignore-errors unused
@@ -90,34 +99,25 @@ gcov_report: clean $(GCOV_OBJ)
 	@echo "=============================================="
 	$(OPEN_CMD) ./$(REPORT_PATH)index.html
 
-
-
-
-
-
-
-
-
-
-
-
 cpptest:
-	cppcheck --enable=all --suppress=missingIncludeSystem *.h
-	cppcheck --enable=all --suppress=missingIncludeSystem *.c units/*.c
+	cppcheck --enable=all --suppress=missingIncludeSystem *.h brick_game/tetris/*.h gui/cli/*.h tests/*.h
+	cppcheck --enable=all --suppress=missingIncludeSystem brick_game/tetris/*.c gui/cli/*.c tests/*.c
 
 clang_check:
 	cp ../materials/linters/.clang-format .
-	clang-format -n *.h tests/*.c tests/*.h units/*.c
+	clang-format -n *.h brick_game/tetris/*.h gui/cli/*.h tests/*.h
+	clang-format -n *.h brick_game/tetris/*.c gui/cli/*.c tests/*.c
 
 clang_fix:
-	clang-format -i *.h tests/*.c tests/*.h units/*.c
+	clang-format -i *.h brick_game/tetris/*.h gui/cli/*.h tests/*.h
+	clang-format -i *.h brick_game/tetris/*.c gui/cli/*.c tests/*.c
 
 leaks: $(TEST_EXEC)
 	leaks -atExit -- ./$(TEST_EXEC) 
 
 valgrind: $(TEST_EXEC)
-	CK_FORK=no valgrind --vgdb=no --leak-check=full --show-leak-kinds=all --track-origins=yes --verbose ./$(TEST_EXEC)
+	CK_FORK=no valgrind --suppressions=ncurses.supp --vgdb=no --leak-check=full --show-leak-kinds=all --track-origins=yes --verbose ./$(TEST_EXEC)
 
-.PHONY: all clean test gcov_report
+.PHONY: all clean test gcov_report run install uninstall dvi dist
 
 # install xelatex: sudo apt install texlive-xetex texlive-lang-cyrillic fonts-dejavu

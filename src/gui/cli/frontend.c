@@ -1,245 +1,239 @@
 #include "frontend.h"
 
-void winInit() {
-    initscr();
-    noecho();
-    curs_set(0);
-    keypad(stdscr, TRUE);
-    timeout(GETCH_TIMEOUT);
-    set_escdelay(ESC_TIMEOUT);
+void winInit(void) {
+  initscr();
+  noecho();
+  curs_set(0);
+  keypad(stdscr, TRUE);
+  timeout(GETCH_TIMEOUT);
+  set_escdelay(ESC_TIMEOUT);
 
-    if (has_colors()) {
-        start_color();
-        init_pair(1, COLOR_BLACK, COLR_RED);    // палка     красная
-        init_pair(2, COLOR_BLACK, COLR_ORANGE); // Г-правая   оранжевая
-        init_pair(3, COLOR_BLACK, COLR_YELLOW); // Г-левая  желтая
-        init_pair(4, COLOR_BLACK, COLR_PINK);   // квадрат   розовый
-        init_pair(5, COLOR_BLACK, COLR_GREEN);  // z-правая  зеленая
-        init_pair(6, COLOR_BLACK, COLR_BLUE);   // T         синяя
-        init_pair(7, COLOR_BLACK, COLR_PURPLE); // z-левая   пурпурная
-    }
-    printBoard();
+  if (has_colors()) {
+    start_color();
+    init_pair(1, COLOR_BLACK, COLR_RED);  // палка     красная
+    init_pair(2, COLOR_BLACK, COLR_ORANGE);  // Г-правая   оранжевая
+    init_pair(3, COLOR_BLACK, COLR_YELLOW);  // Г-левая  желтая
+    init_pair(4, COLOR_BLACK, COLR_PINK);    // квадрат   розовый
+    init_pair(5, COLOR_BLACK, COLR_GREEN);   // z-правая  зеленая
+    init_pair(6, COLOR_BLACK, COLR_BLUE);    // T         синяя
+    init_pair(7, COLOR_BLACK, COLR_PURPLE);  // z-левая   пурпурная
+  }
+  printBoard();
 }
 
-void winClose() {
-    reset_shell_mode();
-    echo();
-    nocbreak();
-    keypad(stdscr, FALSE);
-    endwin();
+void winClose(void) {
+  reset_shell_mode();
+  echo();
+  nocbreak();
+  keypad(stdscr, FALSE);
+  endwin();
 }
 
-void printBoard() {
-    // игровое поле
-    printRectangle(0, BOARD_H + 1, 0, BOARD_W + 1);
-    // поле статистики
-    printRectangle(0, BOARD_H + 1, BOARD_W + 2, BOARD_W + INFO_W + 3);
-   
-    printRectangle(1, 3, BOARD_W + 3, BOARD_W + INFO_W + 2);
-    MVPRINTW(2, BOARD_W + 4, "BEST");
+void printBoard(void) {
+  // игровое поле
+  printRectangle(0, BOARD_H + 1, 0, BOARD_W + 1);
+  // поле статистики
+  printRectangle(0, BOARD_H + 1, BOARD_W + 2, BOARD_W + INFO_W + 3);
 
-    printRectangle(4, 6, BOARD_W + 3, BOARD_W + INFO_W + 2);
-    MVPRINTW(5, BOARD_W + 4, "SCORE");
+  printRectangle(1, 3, BOARD_W + 3, BOARD_W + INFO_W + 2);
+  MVPRINTW(2, BOARD_W + 4, "BEST");
 
-    printRectangle(7, 9, BOARD_W + 3, BOARD_W + INFO_W + 2);
-    MVPRINTW(8, BOARD_W + 4, "LEVEL");
+  printRectangle(4, 6, BOARD_W + 3, BOARD_W + INFO_W + 2);
+  MVPRINTW(5, BOARD_W + 4, "SCORE");
 
-    MVPRINTW(10, BOARD_W + 7, "NEXT");
+  printRectangle(7, 9, BOARD_W + 3, BOARD_W + INFO_W + 2);
+  MVPRINTW(8, BOARD_W + 4, "LEVEL");
 
-    MVPRINTW(15, BOARD_W + 6, "*Keys*");
-    MVPRINTW(16, BOARD_W + 3, "Enter  start");
-    MVPRINTW(17, BOARD_W + 3, "ESC    quit");
-    MVPRINTW(18, BOARD_W + 3, "P      pause");
-    MVPRINTW(19, BOARD_W + 3, "Space  action");
-    MVPRINTW(20, BOARD_W + 3, "Arrow keys");
+  MVPRINTW(10, BOARD_W + 7, "NEXT");
+
+  MVPRINTW(15, BOARD_W + 6, "*Keys*");
+  MVPRINTW(16, BOARD_W + 3, "Enter  start");
+  MVPRINTW(17, BOARD_W + 3, "ESC    quit");
+  MVPRINTW(18, BOARD_W + 3, "P      pause");
+  MVPRINTW(19, BOARD_W + 3, "Space  action");
+  MVPRINTW(20, BOARD_W + 3, "Arrow keys");
 }
 
-void printRectangle(int top_y, int bottom_y, int left_x, int right_x)
-{
-    MVADDCH(top_y, left_x, ACS_ULCORNER);
+void printRectangle(int top_y, int bottom_y, int left_x, int right_x) {
+  MVADDCH(top_y, left_x, ACS_ULCORNER);
 
-    int i = left_x + 1;
+  int i = left_x + 1;
 
-    for (;i < right_x; i++)
-        MVADDCH(top_y, i, ACS_HLINE);
-    MVADDCH(top_y, i, ACS_URCORNER);
+  for (; i < right_x; i++) MVADDCH(top_y, i, ACS_HLINE);
+  MVADDCH(top_y, i, ACS_URCORNER);
 
-    for (int i = top_y + 1; i < bottom_y; i++)
-    {
-        MVADDCH(i, left_x, ACS_VLINE);
-        MVADDCH(i, right_x, ACS_VLINE);
-    }
+  for (i = top_y + 1; i < bottom_y; i++) {
+    MVADDCH(i, left_x, ACS_VLINE);
+    MVADDCH(i, right_x, ACS_VLINE);
+  }
 
-    MVADDCH(bottom_y, left_x, ACS_LLCORNER);
-    i = left_x + 1;
-    for (;i < right_x; i++)
-        MVADDCH(bottom_y, i, ACS_HLINE);
-    MVADDCH(bottom_y, i, ACS_LRCORNER);
+  MVADDCH(bottom_y, left_x, ACS_LLCORNER);
+  i = left_x + 1;
+  for (; i < right_x; i++) MVADDCH(bottom_y, i, ACS_HLINE);
+  MVADDCH(bottom_y, i, ACS_LRCORNER);
 }
 
 void printNext(GameInfo_t *gameInfo) {
-    // очистка предыдущей фигуры
-    for (int i = 0; i < FIGURE_FIELD_SIZE - 1; i++)
-        for (int j = 0; j < FIGURE_FIELD_SIZE; j++) {
-            MVADDCH(12 + i, BOARD_W + 5 + (j * 2 + 1), ' ');
-            MVADDCH(12 + i, BOARD_W + 5 + (j * 2 + 2), ' ');
-        }
+  // очистка предыдущей фигуры
+  for (int i = 0; i < FIGURE_FIELD_SIZE - 1; i++)
+    for (int j = 0; j < FIGURE_FIELD_SIZE; j++) {
+      MVADDCH(12 + i, BOARD_W + 5 + (j * 2 + 1), ' ');
+      MVADDCH(12 + i, BOARD_W + 5 + (j * 2 + 2), ' ');
+    }
 
-    int color = 0;
-    bool color_on = has_colors();
-    char ch_L = color_on ? ' ' : '[';
-    char ch_R = color_on ? ' ' : ']';
+  int color = 0;
+  bool color_on = has_colors();
+  char ch_L = color_on ? ' ' : '[';
+  char ch_R = color_on ? ' ' : ']';
 
-    // найти цвет фигурки в матрице **next
-    for (int i = 0; color_on && i < FIGURE_FIELD_SIZE; i++) 
-        if (gameInfo->next[0][i] > 0) {
-            color = gameInfo->next[0][i];
-            break;
-        }
+  // найти цвет фигурки в матрице **next
+  for (int i = 0; color_on && i < FIGURE_FIELD_SIZE; i++)
+    if (gameInfo->next[0][i] > 0) {
+      color = gameInfo->next[0][i];
+      break;
+    }
 
-    if (color_on) attron(COLOR_PAIR(color));
-    for (int i = 0; i < FIGURE_FIELD_SIZE; i++)
-        for (int j = 0; j < FIGURE_FIELD_SIZE; j++) 
-            if (gameInfo->next[i][j]) {
-                MVADDCH(12 + i, BOARD_W + 5 + (j * 2 + 1), ch_L);
-                MVADDCH(12 + i, BOARD_W + 5 + (j * 2 + 2), ch_R);
-        }
-    if (color_on) attroff(COLOR_PAIR(color));
+  if (color_on) attron(COLOR_PAIR(color));
+  for (int i = 0; i < FIGURE_FIELD_SIZE; i++)
+    for (int j = 0; j < FIGURE_FIELD_SIZE; j++)
+      if (gameInfo->next[i][j]) {
+        MVADDCH(12 + i, BOARD_W + 5 + (j * 2 + 1), ch_L);
+        MVADDCH(12 + i, BOARD_W + 5 + (j * 2 + 2), ch_R);
+      }
+  if (color_on) attroff(COLOR_PAIR(color));
 }
 
 void printStats(GameInfo_t *gameInfo) {
-    MVPRINTW(2, BOARD_W + 10, "    ");
-    MVPRINTW(2, BOARD_W + 10, "%-d", gameInfo->high_score);
+  MVPRINTW(2, BOARD_W + 10, "    ");
+  MVPRINTW(2, BOARD_W + 10, "%-d", gameInfo->high_score);
 
-    MVPRINTW(5, BOARD_W + 10, "    ");
-    MVPRINTW(5, BOARD_W + 10, "%-d", gameInfo->score);
+  MVPRINTW(5, BOARD_W + 10, "    ");
+  MVPRINTW(5, BOARD_W + 10, "%-d", gameInfo->score);
 
-    MVPRINTW(8, BOARD_W + 10, "  ");
-    MVPRINTW(8, BOARD_W + 10, "%-d", gameInfo->level);
+  MVPRINTW(8, BOARD_W + 10, "  ");
+  MVPRINTW(8, BOARD_W + 10, "%-d", gameInfo->level);
 
-    printNext(gameInfo);
+  printNext(gameInfo);
 }
 
 void printField(GameInfo_t *gameInfo) {
-    bool color_on = has_colors();
-    char ch_L = color_on ? ' ' : '[';
-    char ch_R = color_on ? ' ' : ']';
-    for (int i = 0; i < FIELD_H; i++)
-        for (int j = 0; j < FIELD_W; j++) {
-            if (color_on) attron(COLOR_PAIR(gameInfo->field[i][j]));
-            MVADDCH(i+1, (j * 2 + 1), ch_L);
-            MVADDCH(i+1, (j * 2 + 2), ch_R);
-            if (color_on) attroff(COLOR_PAIR(gameInfo->field[i][j]));
-        }
+  bool color_on = has_colors();
+  char ch_L = color_on ? ' ' : '[';
+  char ch_R = color_on ? ' ' : ']';
+  for (int i = 0; i < FIELD_H; i++)
+    for (int j = 0; j < FIELD_W; j++) {
+      if (color_on) attron(COLOR_PAIR(gameInfo->field[i][j]));
+      MVADDCH(i + 1, (j * 2 + 1), ch_L);
+      MVADDCH(i + 1, (j * 2 + 2), ch_R);
+      if (color_on) attroff(COLOR_PAIR(gameInfo->field[i][j]));
+    }
 }
 
 void printPause(GameInfo_t *gameInfo) {
-    
-    printRectangle(FIELD_H / 2 - 4, FIELD_H / 2 + 1, 2, 19);
-    for (int i = FIELD_H / 2 - 4; i < FIELD_H / 2; i++)
-        for (int j = 1; j < FIELD_W - 1; j++) {
-            MVADDCH(i+1, (j * 2 + 1), ' ');
-            MVADDCH(i+1, (j * 2 + 2), ' ');
-        }
-
-    if (gameInfo->pause == 1) {// Пауза
-        MVPRINTW(BOARD_H / 2 - 3, (BOARD_W - PAUSE_MESSAGE_LEN) / 2 + 1, PAUSE_MESSAGE);
-        MVPRINTW(BOARD_H / 2 - 1, (BOARD_W - SMILE_WIDTH) / 2 + 1, SMILE_PAUSE);
-    } else if (gameInfo->pause == 2) {// Победа
-        MVPRINTW(BOARD_H / 2 - 3, (BOARD_W - WIN_MESSAGE_LEN) / 2 + 1, WIN_MESSAGE);
-        MVPRINTW(BOARD_H / 2 - 1, (BOARD_W - SMILE_WIDTH) / 2 + 1, SMILE_WIN);
-    } else if (gameInfo->pause == 3) {// Поражение
-        MVPRINTW(BOARD_H / 2 - 3, (BOARD_W - LOSE_MESSAGE_LEN) / 2 + 1, LOSE_MESSAGE);
-        MVPRINTW(BOARD_H / 2 - 1, (BOARD_W - SMILE_WIDTH) / 2 + 1, SMILE_SAD);
+  printRectangle(FIELD_H / 2 - 4, FIELD_H / 2 + 1, 2, 19);
+  for (int i = FIELD_H / 2 - 4; i < FIELD_H / 2; i++)
+    for (int j = 1; j < FIELD_W - 1; j++) {
+      MVADDCH(i + 1, (j * 2 + 1), ' ');
+      MVADDCH(i + 1, (j * 2 + 2), ' ');
     }
+
+  if (gameInfo->pause == 1) {  // Пауза
+    MVPRINTW(BOARD_H / 2 - 3, (BOARD_W - PAUSE_MESSAGE_LEN) / 2 + 1,
+             PAUSE_MESSAGE);
+    MVPRINTW(BOARD_H / 2 - 1, (BOARD_W - SMILE_WIDTH) / 2 + 1, SMILE_PAUSE);
+  } else if (gameInfo->pause == 2) {  // Победа
+    MVPRINTW(BOARD_H / 2 - 3, (BOARD_W - WIN_MESSAGE_LEN) / 2 + 1, WIN_MESSAGE);
+    MVPRINTW(BOARD_H / 2 - 1, (BOARD_W - SMILE_WIDTH) / 2 + 1, SMILE_WIN);
+  } else if (gameInfo->pause == 3) {  // Поражение
+    MVPRINTW(BOARD_H / 2 - 3, (BOARD_W - LOSE_MESSAGE_LEN) / 2 + 1,
+             LOSE_MESSAGE);
+    MVPRINTW(BOARD_H / 2 - 1, (BOARD_W - SMILE_WIDTH) / 2 + 1, SMILE_SAD);
+  }
 }
 
-static long long getTime() {
-    struct timespec ts;
-    timespec_get(&ts, TIME_UTC);
-    return (long long)ts.tv_sec * 1000 + ts.tv_nsec / 1000000LL;
+static long long getTime(void) {
+  struct timespec ts;
+  timespec_get(&ts, TIME_UTC);
+  return (long long)ts.tv_sec * 1000 + ts.tv_nsec / 1000000LL;
 }
 
 bool processKey(UserAction_t *action, bool *hold) {
-    static int prev_key = 0;
-    static long long last_press_time = 0;
-    int key = getch();
-    bool res = true;
-    long long now = getTime();
+  int key = getch();
+  bool res = true;
+  long long now = getTime();
 
-    switch (key)
-    {
+  switch (key) {
     case KEY_START_R:
     case KEY_START_N:
-        *action = Start;
-        break;
+      *action = Start;
+      break;
     case KEY_PAUSE:
     case KEY_PAUSE_UPPERCASE:
-        *action = Pause;
-        break;
+      *action = Pause;
+      break;
     case KEY_TERMINATE:
-        *action = Terminate;
-        break;
+      *action = Terminate;
+      break;
     case KEY_LEFT:
-        *action = Left;
-        break;
+      *action = Left;
+      break;
     case KEY_RIGHT:
-        *action = Right;
-        break;
+      *action = Right;
+      break;
     case KEY_UP:
-        *action = Up;
-        break;
+      *action = Up;
+      break;
     case KEY_DOWN:
-        *action = Down;
-        break;
+      *action = Down;
+      break;
     case KEY_ACTION:
-        *action = Action;
-        break;
+      *action = Action;
+      break;
     default:
-        res = false;
-        break;
-    }
+      res = false;
+      break;
+  }
 
-    if (res) {
-        // Новое нажатие
-        if (key == prev_key) {
-            // Проверяем, сколько времени прошло с последнего нажатия
-            if (now - last_press_time < HOLD_THRESHOLD_MS)
-                *hold = true;
-            else
-                *hold = false;
-        } else {
-            // Другая клавиша — начинаем заново
-            *hold = false;
-            prev_key = key;
-        }
-        last_press_time = now;    
+  if (res) {
+    static long long last_press_time = 0;
+    static int prev_key = 0;
+    // Новое нажатие
+    if (key == prev_key) {
+      // Проверяем, сколько времени прошло с последнего нажатия
+      if (now - last_press_time < HOLD_THRESHOLD_MS)
+        *hold = true;
+      else
+        *hold = false;
+    } else {
+      // Другая клавиша — начинаем заново
+      *hold = false;
+      prev_key = key;
     }
+    last_press_time = now;
+  }
 
-    return res;
+  return res;
 }
 
-UserAction_t userAction() {
-    UserAction_t action = 0;
-    bool hold = false;
-    if (processKey(&action, &hold))
-        userInput(action, hold);
-    #ifdef NO_RUN
-    static int cnt = 0;
-    cnt++;
-    if (cnt > 1) action = Terminate;
-    #endif
-    return action;
+UserAction_t userAction(void) {
+  UserAction_t action = 0;
+  bool hold = false;
+  if (processKey(&action, &hold)) userInput(action, hold);
+#ifdef NO_RUN
+  static int cnt = 0;
+  cnt++;
+  if (cnt > 1) action = Terminate;
+#endif
+  return action;
 }
 
 void renderGame(GameInfo_t *gameInfo) {
-    if (gameInfo->field != NULL) {
-        if (gameInfo->pause == 0) {
-            printStats(gameInfo);
-            printNext(gameInfo);
-            printField(gameInfo);
-        }
-        else 
-            printPause(gameInfo);
-    }
+  if (gameInfo->field != NULL) {
+    if (gameInfo->pause == 0) {
+      printStats(gameInfo);
+      printNext(gameInfo);
+      printField(gameInfo);
+    } else
+      printPause(gameInfo);
+  }
 }

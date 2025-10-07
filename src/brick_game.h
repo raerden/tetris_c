@@ -3,8 +3,8 @@
 
 #include <stdbool.h>
 
-#define FIELD_W     10
-#define FIELD_H     20
+#define FIELD_W 10
+#define FIELD_H 20
 #define FIGURE_FIELD_SIZE 4
 
 typedef enum {
@@ -29,6 +29,6 @@ typedef struct {
 } GameInfo_t;
 
 void userInput(UserAction_t action, bool hold);
-GameInfo_t updateCurrentState();
+GameInfo_t updateCurrentState(void);
 
 #endif

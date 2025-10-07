@@ -3,7 +3,7 @@
 START_TEST(startGame_test) {
   startGame();
   TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
-  
+
   ck_assert_int_eq(TetrisGameInfo->level, 1);
 }
 END_TEST
@@ -25,9 +25,8 @@ START_TEST(FSM_Spawn_test) {
   updateCurrentState();
 
   int check = 0;
-  for (int j=0; check == 0 && j<FIGURE_FIELD_SIZE; j++)
-    if (TetrisGameInfo->figure[0][j] > 0)
-      check = 1;
+  for (int j = 0; check == 0 && j < FIGURE_FIELD_SIZE; j++)
+    if (TetrisGameInfo->figure[0][j] > 0) check = 1;
   ck_assert_int_eq(check, 1);
 }
 END_TEST
@@ -50,21 +49,21 @@ START_TEST(gameWin_test) {
   TetrisGameInfo->high_score = 6000;
 
   for (int y = FIELD_H - 1; y > FIELD_H - 5; y--) {
-    for (int x = 0; x < FIELD_W; x++)
-      TetrisGameInfo->field[y][x] = 1;
+    for (int x = 0; x < FIELD_W; x++) TetrisGameInfo->field[y][x] = 1;
   }
 
   deleteLines();
   ck_assert_int_eq(TetrisGameInfo->score, 7500);
   ck_assert_int_eq(TetrisGameInfo->high_score, 7500);
   ck_assert_int_eq(TetrisGameInfo->pause, 2);
+  TetrisGameInfo->score = 0;
+  TetrisGameInfo->high_score = 0;
 }
 END_TEST
 
 START_TEST(gameOver_test) {
   TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
-  for (int i=0; i < FIELD_W; i++)
-    TetrisGameInfo->field[0][i] = 1;
+  for (int i = 0; i < FIELD_W; i++) TetrisGameInfo->field[0][i] = 1;
   spawnFigure();
   ck_assert_int_eq(TetrisGameInfo->pause, 3);
 }
@@ -72,10 +71,9 @@ END_TEST
 
 START_TEST(isFullRow_test) {
   TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
-  for (int i=0; i < FIELD_W; i++)
-    TetrisGameInfo->field[0][i] = 1;
+  for (int i = 0; i < FIELD_W; i++) TetrisGameInfo->field[0][i] = 1;
 
-  ck_assert_int_eq(isFullRow(TetrisGameInfo->field,0), true);
+  ck_assert_int_eq(isFullRow(TetrisGameInfo->field, 0), true);
 }
 END_TEST
 
@@ -89,12 +87,12 @@ END_TEST
 
 START_TEST(removeRow_test) {
   TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
-  for (int i=0; i < FIELD_W; i++) {
+  for (int i = 0; i < FIELD_W; i++) {
     TetrisGameInfo->field[0][i] = 1;
     TetrisGameInfo->field[1][i] = 1;
   }
 
-  removeRow(TetrisGameInfo->field,1);
+  removeRow(TetrisGameInfo->field, 1);
 
   ck_assert_int_eq(TetrisGameInfo->field[0][0], 0);
 }
@@ -110,13 +108,12 @@ END_TEST
 
 START_TEST(genNextFigure_test) {
   TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
-  for (int i=0; i < 20; i++) {
+  for (int i = 0; i < 20; i++) {
     clearMatrix(TetrisGameInfo->next, FIGURE_FIELD_SIZE, FIGURE_FIELD_SIZE);
     genNextFigure();
     int check = 0;
-    for (int j=0; check == 0 && j<FIGURE_FIELD_SIZE; j++)
-      if (TetrisGameInfo->next[0][j] > 0)
-        check = 1;
+    for (int j = 0; check == 0 && j < FIGURE_FIELD_SIZE; j++)
+      if (TetrisGameInfo->next[0][j] > 0) check = 1;
     ck_assert_int_eq(check, 1);
   }
 }
@@ -129,20 +126,21 @@ START_TEST(deleteLines_test) {
   TetrisGameInfo->high_score = 0;
 
   for (int y = FIELD_H - 1; y > FIELD_H - 5; y--) {
-    for (int x = 0; x < FIELD_W; x++)
-      TetrisGameInfo->field[y][x] = 1;
+    for (int x = 0; x < FIELD_W; x++) TetrisGameInfo->field[y][x] = 1;
   }
 
   deleteLines();
   ck_assert_int_eq(TetrisGameInfo->score, 1500);
   ck_assert_int_eq(TetrisGameInfo->high_score, 1500);
+  TetrisGameInfo->score = 0;
+  TetrisGameInfo->high_score = 0;
 }
 END_TEST
 
 START_TEST(swapInt_test) {
   int x = 10;
   int y = 20;
-  swapInt(&x,&y);
+  swapInt(&x, &y);
   ck_assert_int_eq(x, 20);
   ck_assert_int_eq(y, 10);
 }
@@ -150,7 +148,7 @@ END_TEST
 
 START_TEST(rotateFigure_test) {
   TetrisGameInfo_t *TetrisGameInfo = getTetrisGameInfo();
-  //горизонтальня палка
+  // горизонтальня палка
   TetrisGameInfo->figure[0][0] = 1;
   TetrisGameInfo->figure[0][1] = 1;
   TetrisGameInfo->figure[0][2] = 1;
@@ -175,8 +173,8 @@ START_TEST(moveLeft_test) {
   spawnFigure();
   int x = TetrisGameInfo->pos_x;
   moveLeft();
-  ck_assert_int_eq(TetrisGameInfo->pos_x, x-1);
-  for (int i=0; i < 15; i++)//двигаем влево 15 раз.
+  ck_assert_int_eq(TetrisGameInfo->pos_x, x - 1);
+  for (int i = 0; i < 15; i++)  // двигаем влево 15 раз.
     moveLeft();
   ck_assert_int_eq(TetrisGameInfo->pos_x, 0);
 }
@@ -187,8 +185,8 @@ START_TEST(moveRigth_test) {
   spawnFigure();
   int x = TetrisGameInfo->pos_x;
   moveRigth();
-  ck_assert_int_eq(TetrisGameInfo->pos_x, x+1);
-  for (int i=0; i < 15; i++)//двигаем вправо 15 раз.
+  ck_assert_int_eq(TetrisGameInfo->pos_x, x + 1);
+  for (int i = 0; i < 15; i++)  // двигаем вправо 15 раз.
     moveRigth();
   ck_assert_int_eq(TetrisGameInfo->pos_x, FIELD_W - TetrisGameInfo->figure_w);
 }
@@ -199,8 +197,8 @@ START_TEST(moveDown_test) {
   spawnFigure();
   int y = TetrisGameInfo->pos_y;
   moveDown();
-  ck_assert_int_eq(TetrisGameInfo->pos_y, y+1);
-  for (int i=0; i < 30; i++)//двигаем вниз 30 раз.
+  ck_assert_int_eq(TetrisGameInfo->pos_y, y + 1);
+  for (int i = 0; i < 30; i++)  // двигаем вниз 30 раз.
     moveDown();
   ck_assert_int_eq(TetrisGameInfo->pos_y, FIELD_H - TetrisGameInfo->figure_h);
 }
@@ -247,7 +245,6 @@ int main(void) {
   SRunner *sr = srunner_create(test);
   srunner_set_fork_status(sr, CK_NOFORK);
   srunner_run_all(sr, CK_NORMAL);
-
 
   srunner_free(sr);
   terminateGame();

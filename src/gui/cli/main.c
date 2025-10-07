@@ -1,18 +1,18 @@
 #include "../../brick_game.h"
-#include "./frontend.h"
 #include "../../brick_game/tetris/backend.h"
+#include "./frontend.h"
 
-int main() {
-    winInit();
-    
-    GameInfo_t gameInfo = {0};
+int main(void) {
+  winInit();
 
-    while(userAction() != Terminate) {
-        gameInfo = updateCurrentState();
-        renderGame(&gameInfo);
-    }
+  GameInfo_t gameInfo;
 
-    winClose();
+  while (userAction() != Terminate) {
+    gameInfo = updateCurrentState();
+    renderGame(&gameInfo);
+  }
 
-    return 0;
+  winClose();
+
+  return 0;
 }
